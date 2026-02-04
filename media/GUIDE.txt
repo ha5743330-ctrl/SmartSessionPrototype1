@@ -1,0 +1,49 @@
+===========================================================
+        SMART SESSION PROTOTYPE - SETUP GUIDE
+===========================================================
+
+Is project ko naye PC par chalane ke liye niche diye gaye 
+steps ko sequence mein follow karein:
+
+STEP 1: NODE.JS SETUP
+---------------------
+1. Sab se pehle PC mein Node.js install karein (https://nodejs.org/).
+2. Terminal/CMD khol kar project folder mein jayein.
+3. Ye command likhein: 
+   npm install
+   (Is se saare backend modules install ho jayenge).
+
+STEP 2: PYTHON ENVIRONMENT SETUP
+-------------------------------
+1. PC mein Python 3.10 or higher install karein.
+2. Terminal mein ye commands ek ek karke chalayein:
+   python -m venv venv
+   venv\Scripts\activate
+   pip install -r requirements.txt
+   
+   (Note: Agar 'requirements.txt' nahi hai, toh ye install karein:
+   pip install tensorflow deepface opencv-python flask numpy)
+
+STEP 3: MISSING MODELS (IMPORTANT)
+----------------------------------
+Project mein face recognition ke liye models chahiye hote hain:
+1. 'shape_predictor_68_face_landmarks.dat' file download karein.
+2. Is file ko project ke main folder mein rakhein.
+3. Agar model missing hoga toh program error dega.
+
+STEP 4: PROJECT RUN KARNA
+-------------------------
+Jab sab install ho jaye, toh project start karne ke liye:
+1. Terminal mein likhein:
+   npm start
+   (Ya phir jo bhi aapki main file hai, jaise: node app.js)
+
+STEP 5: TROUBLESHOOTING
+-----------------------
+- Agar 'Module not found' ka error aaye, toh 'npm install' dobara karein.
+- Agar Camera access nahi ho raha, toh check karein koi aur app 
+  camera toh use nahi kar rahi.
+
+===========================================================
+Guide Created by: Panda Gaming Store AI Assistant
+===========================================================
