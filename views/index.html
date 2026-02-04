@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Session - Home</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    /* Aapka existing CSS yahan rahega, jo aapne diya hai */
+body {
+
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #000000, #07077f, #000000);
+      color: #fff;
+      height: 100vh;
+      overflow-x: hidden;
+    }
+#top-header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: #101699;
+    color: #fff;
+    padding: 10px 0;
+    text-align: center;
+    z-index: 5;
+    transition: top 0.3s ease;
+}
+
+  
+
+
+    /* ---------- NAVBAR ---------- */
+    nav {
+    position: fixed;
+    top: 35px; /* top header height ke barabar start */
+    width: 100%;
+    background: rgb(255,255,255);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+    transition: top 0.3s ease;
+
+
+    }
+
+    .logo {
+  display: flex;
+  align-items: center; /* vertically center */
+  gap: 8px; /* text aur image ke beech spacing */
+}
+
+.logo-img {
+  height: 40px; /* apni requirement ke mutabiq adjust karein */
+  width: auto;
+}
+
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      margin: 0px 40px 0px 0px;
+      padding: 0;
+      transition: all 0.3s ease;
+    }
+
+    nav ul li {
+      margin: 0 15px;
+    }
+
+    nav ul li a {
+      color: #101699;
+      text-decoration: none;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    nav ul li a:hover {
+      color: #00ffcc;
+      text-shadow: 0 0 10px #00ffcc;
+    }
+
+
+    /* --- Hamburger icon --- */
+    .menu-icon {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      width: 25px;
+      height: 20px;
+      justify-content: space-between;
+    }
+
+    .menu-icon div {
+      width: 100%;
+      height: 3px;
+      background-color: #101699;
+      border-radius: 2px;
+      transition: 0.3s;
+    }
+    #top-header, nav {
+  transition: top 0.8s ease; /* smooth slide effect */
+}
+
+#top-header.hide {
+  top: -40px; /* hide top header (height ke equal) */
+}
+
+
+.hide {
+    top: -100px; /* dono header + nav slide up */
+}
+/* ---------- MENU ICON (MOBILE) ---------- */
+.menu-icon{
+  width: 28px;
+  margin-left: 20px;
+  display: none;
+}
+    /* ---------- Responsive Styles ---------- */
+    @media (max-width: 900px) {
+      nav ul {
+        position: absolute;
+        top: 65px;
+        left: 0;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        flex-direction: column;
+        align-items: center;
+        max-height: 0;
+        overflow: hidden;
+      }
+
+      nav ul.active {
+        max-height: 500px;
+        padding: 10px 0;
+      }
+
+      nav ul li {
+        margin: 15px 0;
+      }
+
+      .menu-icon {
+        display: flex;
+        margin: 0px 40px 0px 0px;
+      }
+    }
+
+    /* --- Animation for menu open/close --- */
+    .menu-icon.active div:nth-child(1) {
+      transform: rotate(45deg) translateY(8px);
+    }
+    .menu-icon.active div:nth-child(2) {
+      opacity: 0;
+    }
+    .menu-icon.active div:nth-child(3) {
+      transform: rotate(-45deg) translateY(-8px);
+    }
+    /* ---------- HERO ---------- */
+    .hero {
+      position: relative;
+      z-index: 2;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      
+      
+         padding-top: 100px; /* top-header + navbar height = 40 + 60 */
+    }
+
+    .hero-box {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 50px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      clip-path: polygon(0 0, 100% 10%, 95% 100%, 5% 95%);
+      box-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffaa;
+      max-width: 700px;
+    }
+
+.hero {
+  position: relative;
+  z-index: 2;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 60px;
+}
+
+.hero-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1400px;
+  gap: 40px;
+}
+
+.hero-left {
+  flex: 1;
+  color: #fff;
+}
+
+.hero-left h1 {
+  font-size: 48px;
+  margin-bottom: 20px;
+  color: #00ffcc;
+}
+
+.hero-left p {
+  font-size: 20px;
+  line-height: 1.5;
+  margin-bottom: 25px;
+}
+
+.hero-left .btn.anydesk-btn {
+  position: relative;
+  padding: 14px 40px;
+  font-size: 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #ffffff;
+  background: #e21e14; /* AnyDesk signature red */
+  border: none;
+  display: inline-block;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.2s ease;
+}
+
+.btn.anydesk-btn:hover {
+  background: #aa0900; /* thoda darker on hover */
+}
+
+.btn.anydesk-btn::before {
+  content: "";
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  width: 180px;
+  height: 180px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgb(86, 207, 6), transparent 60%);
+  opacity: 0;
+  border-radius: 50%;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+
+.btn.anydesk-btn:hover::before {
+  opacity: 0.6;
+}
+
+
+
+
+
+.hero-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.hero-right img {
+  max-width: 80%;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+
+/* -------- RESET -------- */
+
+
+/* -------- LAYOUT -------- */
+.container{
+  max-width: 1300px;
+  margin: auto;
+  padding: 0 25px;
+}
+
+.row{
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.col-2{
+  flex-basis: 50%;
+  min-width: 300px;
+}
+
+.col-2 img{
+  width: 85%;
+  padding: 40px 0;
+}
+
+/* -------- HEADING + BUTTON -------- */
+.col-2 h1{
+  color: #df170c;
+  font-size: 80px;
+  line-height: 60px;
+  margin: 25px 0;
+}
+
+.btn{
+  display: inline-block;
+  background-color: #ff523b;
+  color: #fff;
+  padding: 10px 30px;
+  margin: 30px 0;
+  border-radius: 30px;
+  transition: 0.3s;
+}
+
+.btn:hover{
+  background: #db0505;
+}
+
+/* -------- HEADER BG -------- */
+
+
+/* ----------- FIXED SPACING FOR FEATURED CARDS ----------- */
+
+/* container row spacing (same as old) */
+.small-container .row{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around; /* OLD STYLE */
+}
+
+/* ----------- FEATURED CARDS (ADVANCED 3D & FLOATING TEXT) ----------- */
+
+/* Each card container */
+.col-4.card{
+  flex-basis: 25%;        /* OLD WIDTH */
+  min-width: 200px;       /* OLD MIN WIDTH */
+  padding: 10px;          /* OLD PADDING */
+  height: 260px;          /* OLD HEIGHT */
+  margin-bottom: 50px;    /* OLD GAP */
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;    /* slightly rounded */
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: #111;       /* base color for contrast */
+  transition: transform 0.5s cubic-bezier(0.25,1,0.5,1), box-shadow 0.5s ease;
+  transform-style: preserve-3d;
+  perspective: 1200px;    /* deep 3D effect */
+  will-change: transform;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+/* Background image layer */
+.card-bg{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.6);
+  z-index: 0;
+  border-radius: 12px;
+  transition: transform 0.5s cubic-bezier(0.25,1,0.5,1), filter 0.5s ease, box-shadow 0.5s ease;
+}
+
+/* Card hover effect - 3D + scale + shadow */
+.col-4.card:hover{
+  transform: scale(1.08) rotateX(5deg) rotateY(5deg);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+}
+
+/* Background zoom + brightness on hover */
+.col-4.card:hover .card-bg{
+  transform: scale(1.12) rotateX(3deg) rotateY(3deg);
+  filter: brightness(0.75);
+}
+
+/* Text inside card */
+.col-4.card h4,
+.col-4.card p{
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  margin: 0 10px 10px 10px;
+  transition: transform 0.5s cubic-bezier(0.25,1,0.5,1), text-shadow 0.5s ease;
+  transform: translateZ(0); /* initial flat */
+}
+
+/* Heading font size */
+.col-4.card h4{
+  font-size: 16px;
+}
+
+/* Paragraph font size */
+.col-4.card p{
+  font-size: 14px;
+}
+
+/* ----------- FLOATING TEXT / 3D POP ----------- */
+.col-4.card:hover h4{
+  transform: translateY(-30px) translateZ(50px); /* heading flies out above card */
+  text-shadow: 0 6px 20px rgba(255,255,255,0.7);
+}
+
+.col-4.card:hover p{
+  transform: translateY(-20px) translateZ(40px); /* paragraph floats slightly behind heading */
+  text-shadow: 0 4px 15px rgba(255,255,255,0.6);
+}
+
+
+
+.col-4.card:hover::after{
+  opacity: 1;
+}
+
+
+
+
+.col-4{
+  flex-basis: 25%;
+  min-width: 200px;
+  padding: 10px;
+  margin-bottom: 50px;
+  transition: 0.4s;
+}
+
+.col-4 img{
+  width: 100%;
+}
+
+.title{
+  text-align: center;
+  margin: 70px auto;
+  font-size: 24px;
+  color: #ffffff;
+  position: relative;
+}
+
+.title::after{
+  content: "";
+  width: 80px;
+  height: 5px;
+  background: #ff523b;
+  border-radius: 5px;
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.col-4:hover{
+  transform: translateY(-5px);
+}
+
+/* -------- TESTIMONIALS -------- */
+.testimonial{
+  padding-top: 80px;
+}
+
+.testimonial .col-3{
+  flex-basis: 30%;
+  min-width: 250px;
+  text-align: center;
+  padding: 40px 20px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  transition: 0.4s;
+}
+
+.testimonial .col-3 img{
+  width: 50px;
+  margin-top: 15px;
+  border-radius: 50%;
+}
+
+.testimonial .col-3:hover{
+  transform: translateY(-10px);
+}
+
+/* -------- BRANDS -------- */
+.brands{
+  margin: 80px auto;
+  /* display: flex; */
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px; /* logos ke beech ki spacing */
+}
+
+.col-5{
+  width: 160px;
+  height: 160px; /* fixed height to keep spacing stable */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 600px; /* 3D effect */
+}
+
+.col-5 img{
+  width: 100%;
+  filter: grayscale(100%);
+  transition: transform 0.4s ease, filter 0.4s ease, box-shadow 0.4s ease;
+  border-radius: 10px;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.col-5 img:hover{
+  filter: grayscale(0);
+  transform: scale(1.15) rotateX(5deg) rotateY(5deg); /* 3D + zoom */
+  box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+  cursor: pointer;
+}
+
+
+
+/* ---------- FOOTER ---------- */
+.footer{
+  background-color: #000;
+  color: #8a8a8a;
+  font-size: 14px;
+  padding: 60px 0 10px;
+}
+
+.footer p{
+  color: #8a8a8a;
+}
+
+.footer-col-1,
+.footer-col-2,
+.footer-col-3,
+.footer-col-4{
+  min-width: 250px;
+  margin-bottom: 20px;
+}
+
+.footer-col-1{
+  flex-basis: 30%;
+}
+
+.footer-col-2{
+  flex: 1;
+  text-align: center;
+}
+
+.footer-col-2 img{
+  width: 180px;
+  margin-bottom: 20px;
+}
+
+.footer-col-3,
+.footer-col-4{
+  flex-basis: 12%;
+  text-align: center;
+}
+
+ul{
+  list-style: none;
+}
+
+.app-logo{
+  margin-top: 20px;
+}
+
+.app-logo img{
+  width: 140px;
+}
+
+.footer hr{
+  border: none;
+  height: 1px;
+  background: #b5b5b5;
+  margin: 20px 0;
+}
+
+.copyright{
+  text-align: center;
+  color: #fff;
+}
+.card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.card-link:hover {
+  transform: translateY(-5px);
+  transition: 0.3s;
+}
+
+
+
+@media only screen and (max-width: 600px){
+  .row{
+    text-align: center;
+  }
+
+  .col-2, .col-3, .col-4{
+    flex-basis: 100%;
+  }
+}
+
+
+    #tsparticles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* BACKGROUND */
+    pointer-events: none; /* content clickable rahe */
+}
+
+  </style>
+</head>
+<body>
+  <!-- ===== TOP HEADER ===== -->
+<div id="top-header" style="background-color: #101699; color: #fff; text-align: center;  font-size: 14px;">
+    Welcome to Smart Session - Fast, Secure & Reliable Remote Access!
+</div>
+
+<!-- ===== NAVBAR SECTION ===== -->
+<div id="navbar-section">
+  <nav>
+    <div class="logo">
+      <img src="/images/logo1.png" alt="SmartSession Logo" class="logo-img">
+    </div>
+    <div class="menu-icon" id="menu-icon">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+    <ul id="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/signin">Sign In</a></li>
+      <li><a href="/create-session">Start Session</a></li>
+      <li><a href="/join-session">Join Session</a></li>
+      <li><a href="/view-sessions">View Sessions</a></li>
+      <li><a href="/reports">Reports</a></li>
+      <li><a href="#" id="logoutBtn">Logout</a></li>
+    </ul>
+  </nav>
+</div>
+
+<!-- ===== HERO SECTION ===== -->
+<div id="hero-section">
+  <section class="hero">
+    <div class="hero-container">
+      <div class="hero-left">
+        <h1>Welcome to Smart Session</h1>
+        <p>Experience futuristic remote access and collaboration like never before — secure, fast, and intuitive.</p>
+        <a href="/Create-session" class="btn anydesk-btn">Start a Session</a>
+      </div>
+      <div class="hero-right">
+        <img src="images\dashboard-img.png" alt="SmartSession UI Preview">
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="featured-products-section" class="small-container">
+  <h2 class="title">Smart Session Tools</h2>
+
+  <div class="row">
+
+    <!-- Remote Control -->
+    <a href="/pages/remote-control.html" class="col-4 card card-link">
+      <div class="card-bg" style="background-image: url('/images/background-img.jpg');"></div>
+      <h4>Remote Control Access</h4>
+      <p>Secure mouse & keyboard control in real time</p>
+    </a>
+
+    <!-- Screen Sharing -->
+    <a href="/pages/screen-sharing.html" class="col-4 card card-link">
+      <div class="card-bg" style="background-image: url('/images/background-img.jpg');"></div>
+      <h4>HD Screen Sharing</h4>
+      <p>Ultra-smooth live streaming with low latency</p>
+    </a>
+
+    <!-- File Transfer -->
+    <a href="/pages/file-transfer.html" class="col-4 card card-link">
+      <div class="card-bg" style="background-image: url('/images/background-img.jpg');"></div>
+      <h4>Fast File Transfer</h4>
+      <p>Send & receive files with encryption</p>
+    </a>
+
+  </div>
+</div>
+
+
+<!-- ===== OFFER SECTION ===== -->
+<div id="offer-section" class="offer">
+  <div class="small-container">
+    <div class="row">
+      <div class="col-2">
+        <img src="images/exclusive.png" class="offer-img">
+      </div>
+      <div class="col-2">
+        <h1>Re-Imagine</h1>
+        <p style="font-size: 30px;">Remote Access</p>
+        <small>We connect you from where you are to where you need to be.</small>
+        <br>
+        <a href="signin" class="btn">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BRANDS SECTION ===== -->
+<div id="brands-section" class="brands">
+  <div class="small-container">
+    <div class="row">
+      <div class="col-5"><img src="images/logo-godrej.png"></div>
+      <div class="col-5"><img src="images/logo-oppo.png"></div>
+      <div class="col-5"><img src="images/logo-paypal.png"></div>
+      <div class="col-5"><img src="images/logo-philips.png"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FOOTER SECTION ===== -->
+<div id="footer-section" class="footer">
+  <div class="container">
+    <div class="row">
+      <div class="footer-col-1">
+        <h3>Download Our App</h3>
+        <p>Download App for Android and iOS.</p>
+        <div class="app-logo">
+          <img src="images/play-store.png">
+          <img src="images/app-store.png">
+        </div>
+      </div>
+      <div class="footer-col-2">
+        <img src="images/logo1.png">
+       <p>Connecting you to your work, anywhere, anytime.</p>
+</div>
+      <div class="footer-col-3">
+        <h3>Useful Links</h3>
+        <ul>
+          <li>Coupons</li>
+          <li>Blog Post</li>
+          <li>Return Policy</li>
+          <li>Join Affiliate</li>
+        </ul>
+      </div>
+      <div class="footer-col-4">
+        <h3>Follow Us</h3>
+        <ul>
+          <li>Facebook</li>
+          <li>Twitter</li>
+          <li>Instagram</li>
+          <li>YouTube</li>
+        </ul>
+      </div>
+    </div>
+    <hr>
+    <p class="copyright">Copyright 2025</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/signaling.js"></script>
+
+<script>
+  // btn hover effect
+  document.querySelectorAll(".btn.anydesk-btn").forEach(btn => {
+    btn.addEventListener("mousemove", (e) => {
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      btn.style.setProperty("--x", x + "px");
+      btn.style.setProperty("--y", y + "px");
+    });
+    btn.addEventListener("mouseleave", () => {
+      btn.style.setProperty("--x", "50%");
+      btn.style.setProperty("--y", "50%");
+    });
+  });
+
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    const res = await fetch('/api/logout', { method: 'POST' });
+    const data = await res.json();
+    alert(data.message);
+    window.location.href = '/';
+  });
+
+  // Mobile Menu Toggle
+  const menuIcon = document.getElementById('menu-icon');
+  const navLinks = document.getElementById('nav-links');
+  menuIcon.addEventListener('click', () => {
+    navLinks.classList.toggle('active');
+    menuIcon.classList.toggle('active');
+  });
+  
+
+  // tsparticles
+  tsParticles.load("tsparticles", {
+    background: { color: "#02022A" },
+    particles: {
+      number: { value: 10 },
+      size: { value: 80 },
+      opacity: { value: 0.15 },
+      shape: { type: "circle" },
+      move: { enable: false }
+    }
+  });
+  
+</script>
+<script>
+let lastScroll = 0;
+const topHeader = document.getElementById('top-header');
+const navbar = document.querySelector('nav');
+
+window.addEventListener('scroll', () => {
+    const currentScroll = window.pageYOffset;
+
+    if (currentScroll > lastScroll) {
+        // scroll down → dono hide
+        topHeader.classList.add('hide');
+        navbar.classList.add('hide');
+    } else {
+        // scroll up → dono show
+        topHeader.classList.remove('hide');
+        navbar.classList.remove('hide');
+    }
+
+    lastScroll = currentScroll;
+});
+</script>
+
+
+</body>
+</html>

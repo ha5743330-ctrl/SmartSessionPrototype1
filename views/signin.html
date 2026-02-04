@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SmartSession | Sign In / Register</title>
+    <link rel="stylesheet" href="/style.css">
+
+  <style>
+    body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  
+  /* Background image lagayein */
+  background-image: url('/images/background-img.jpg'); /* yahan apni image ka path */
+  background-size: cover;      /* poora page cover kare */
+  background-position: center; /* image center me align ho */
+  background-repeat: no-repeat;/* image repeat na ho */
+
+  /* Optional gradient overlay */
+  background-color: rgba(0,0,0,0.5); 
+  background-blend-mode: overlay;
+
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+}
+
+
+     /* ---------- NAVBAR ---------- */
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgb(255, 255, 255);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(10px);
+      z-index: 10;
+      box-shadow: 0 0 15px rgba(0,255,255,0.3);
+    }
+
+.logo {
+  display: flex;
+  align-items: center; /* vertically center */
+  gap: 8px; /* text aur image ke beech spacing */
+}
+
+.logo-img {
+  height: 40px; /* apni requirement ke mutabiq adjust karein */
+  width: auto;
+}
+
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      margin: 0px 40px 0px 0px;
+      padding: 0;
+      transition: all 0.3s ease;
+    }
+
+    nav ul li {
+      margin: 0 15px;
+    }
+
+    nav ul li a {
+      color: #101699;
+      text-decoration: none;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    nav ul li a:hover {
+      color: #00ffcc;
+      text-shadow: 0 0 10px #00ffcc;
+    }
+
+    /* --- Hamburger icon --- */
+    .menu-icon {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      width: 25px;
+      height: 20px;
+      justify-content: space-between;
+    }
+
+    .menu-icon div {
+      width: 100%;
+      height: 3px;
+      background-color: #101699;
+      border-radius: 2px;
+      transition: 0.3s;
+    }
+
+
+    /* Form */
+    .container {
+      z-index: 2;
+      width: 380px;
+      margin-top: 200px;
+    }
+
+    .form-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 40px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffaa;
+      clip-path: polygon(0 0, 100% 10%, 95% 100%, 5% 95%);
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+
+    .tabs button {
+      background: transparent;
+      border: none;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 8px 20px;
+      transition: 0.3s;
+    }
+
+    .tabs button.active {
+      border-bottom: 2px solid #00ffcc;
+      color: #00ffcc;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    button.submit {
+      background: linear-gradient(90deg,#e3e0e7, #ff0000);
+      color: #fff;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button.submit:hover {
+      background: #0f2027;
+    }
+
+
+
+    @keyframes scan {
+      0% { top: 0; }
+      100% { top: 100%; }
+    }
+
+        footer {
+  margin-top: auto;
+  width: 100%;
+  background: rgba(0,0,0,0.6);
+  padding: 15px;
+  text-align: center;
+  color: white;
+  font-size: 14px;
+}
+
+    /* ---------- Responsive Styles ---------- */
+    @media (max-width: 900px) {
+      nav ul {
+        position: absolute;
+        top: 65px;
+        left: 0;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        flex-direction: column;
+        align-items: center;
+        max-height: 0;
+        overflow: hidden;
+      }
+
+      nav ul.active {
+        max-height: 500px;
+        padding: 10px 0;
+      }
+
+      nav ul li {
+        margin: 15px 0;
+      }
+
+      .menu-icon {
+        display: flex;
+        margin: 0px 40px 0px 0px;
+      }
+    }
+
+    /* --- Animation for menu open/close --- */
+    .menu-icon.active div:nth-child(1) {
+      transform: rotate(45deg) translateY(8px);
+    }
+    .menu-icon.active div:nth-child(2) {
+      opacity: 0;
+    }
+    .menu-icon.active div:nth-child(3) {
+      transform: rotate(-45deg) translateY(-8px);
+    }
+  </style>
+</head>
+
+<body>
+
+
+    <!-- Navbar -->
+  <nav>
+<div class="logo">
+  <img src="/images/logo1.png" alt="SmartSession Logo" class="logo-img">
+</div> 
+    <div class="menu-icon" id="menu-icon">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+    <ul id="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/signin">Sign In</a></li>
+      <li><a href="/create-session">Start Session</a></li>
+      <li><a href="/join-session">Join Session</a></li>
+      <li><a href="/view-sessions">View Sessions</a></li>
+      <li><a href="/reports">Reports</a></li>
+      <li><a href="#" id="logoutBtn">Logout</a></li>
+    </ul>
+  </nav>
+  <!-- Form -->
+  <div class="container">
+    <div class="form-box">
+      <div class="tabs">
+        <button id="loginTab" class="active" onclick="showForm('login')">Sign In</button>
+        <button id="registerTab" onclick="showForm('register')">Create Account</button>
+      </div>
+
+      <form id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Email" required>
+        <input type="password" id="loginPassword" placeholder="Password" required>
+        <button type="submit" class="submit">Login</button>
+      </form>
+
+      <form id="registerForm" style="display: none;">
+        <input type="text" id="regName" placeholder="Full Name" required>
+        <input type="email" id="regEmail" placeholder="Email" required>
+        <input type="password" id="regPassword" placeholder="Password" required>
+        <button type="submit" class="submit">Create Account</button>
+      </form>
+    </div>
+    
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 SmartSession Management | All Rights Reserved</p>
+  </footer>
+
+<script>
+  // --- Mobile Menu Toggle ---
+  const menuIcon = document.getElementById('menu-icon');
+  const navLinks = document.getElementById('nav-links');
+  menuIcon.addEventListener('click', () => {
+    navLinks.classList.toggle('active');
+    menuIcon.classList.toggle('active');
+  });
+
+  // Show login/register form
+  function showForm(form) {
+    const isLogin = form === 'login';
+    document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
+    document.getElementById('loginTab').classList.toggle('active', isLogin);
+    document.getElementById('registerTab').classList.toggle('active', !isLogin);
+  }
+
+  // ✅ REGISTER (FIXED – FACE AUTH REDIRECT)
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: regName.value,
+        email: regEmail.value,
+        password: regPassword.value
+      })
+    });
+
+    const data = await res.json();
+    alert(data.message || "Account created");
+
+    // 🔥 IMPORTANT FIX
+    if (data.success && data.redirect) {
+      window.location.href = data.redirect; // → /face-auth
+    }
+  });
+
+  // ✅ LOGIN (ALREADY CORRECT)
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: loginEmail.value,
+        password: loginPassword.value
+      })
+    });
+
+    const data = await res.json();
+    alert(data.message || "Login successful");
+
+    if (data.success && data.redirect) {
+      window.location.href = data.redirect;
+    }
+  });
+
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    const res = await fetch('/api/logout', { method: 'POST' });
+    const data = await res.json();
+    alert(data.message);
+    window.location.href = '/signin';
+  });
+</script>
+
+
+</body>
+</html>

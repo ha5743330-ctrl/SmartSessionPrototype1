@@ -1,0 +1,8 @@
+tfenv/
+venv/
+env/
+.env
+node_modules/
+shape_predictor_68_face_landmarks.dat
+uploads/faces/*
+!uploads/faces/.gitkeep

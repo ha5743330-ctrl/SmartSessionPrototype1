@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard - SmartSession</title>
+
+  <!-- Bootstrap & Axios -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: 'Poppins', sans-serif;
+    }
+    .navbar {
+      background: #1e293b;
+    }
+    .container { margin-top: 30px; }
+    .card {
+      background: #1e293b;
+      border: none;
+      border-radius: 12px;
+      color: #e2e8f0;
+    }
+    button { border-radius: 6px; transition: 0.2s; }
+    button:hover { transform: scale(1.05); }
+    table th, table td { color: #f1f5f9; }
+
+    /* Vertical scroll for tables */
+    #usersSection, #reportsSection {
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+
+    /* Scrollbar styling */
+    #usersSection::-webkit-scrollbar,
+    #reportsSection::-webkit-scrollbar { width: 8px; }
+    #usersSection::-webkit-scrollbar-thumb,
+    #reportsSection::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    #usersSection::-webkit-scrollbar-track,
+    #reportsSection::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+
+    /* Table hover */
+    table tbody tr:hover { background: #334155; cursor: pointer; }
+
+    .blocked { background-color: #dc2626 !important; color: white; }
+    .unblocked { background-color: #16a34a !important; color: white; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark px-4">
+  <span class="navbar-brand">⚙️ SmartSession Admin Dashboard</span>
+  <button class="btn btn-outline-danger" id="logoutBtn">Logout</button>
+</nav>
+
+<div class="container">
+
+  <!-- Dashboard Controls -->
+  <div class="row text-center mb-4">
+    <div class="col">
+      <h2>👨‍💼 Manage Users</h2>
+      <button class="btn btn-primary" id="loadUsersBtn">Load Users</button>
+    </div>
+    <div class="col">
+      <h2>📋 View Reports</h2>
+      <button class="btn btn-success" id="loadReportsBtn">Load Reports</button>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div id="usersSection" class="mt-4 card p-3">
+    <h4 class="text-info">Registered Users</h4>
+    <table class="table table-striped table-hover mt-3">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Last Updated</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="usersTable"></tbody>
+    </table>
+    <div class="text-center mt-2">
+      <button class="btn btn-secondary btn-sm" id="toggleUsersBtn">Show More</button>
+    </div>
+  </div>
+
+  <!-- Reports Table -->
+  <div id="reportsSection" class="mt-5 card p-3">
+    <h4 class="text-warning">System Reports</h4>
+    <table class="table table-striped table-hover mt-3">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>Action</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody id="reportsTable"></tbody>
+    </table>
+    <div class="text-center mt-2">
+      <button class="btn btn-secondary btn-sm" id="toggleReportsBtn">Show More</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const apiBase = window.location.origin;
+let usersData = [], reportsData = [];
+let usersShowAll = false, reportsShowAll = false;
+
+// ===========================
+// USERS
+// ===========================
+async function loadUsers() {
+  try {
+    const res = await axios.get(`${apiBase}/api/admin/users`);
+    usersData = res.data;
+    usersShowAll = false;
+    renderUsers();
+  } catch (err) { console.error(err); alert('Failed to load users.'); }
+}
+
+function renderUsers() {
+  const table = document.getElementById('usersTable');
+  table.innerHTML = '';
+
+  const rows = usersShowAll ? usersData : usersData.slice(0, 5);
+
+  rows.forEach(u => {
+    const isBlocked = u.blocked;
+    const tr = document.createElement('tr');
+    tr.className = isBlocked ? 'blocked' : 'unblocked';
+    tr.innerHTML = `
+      <td>${u.name}</td>
+      <td>${u.email}</td>
+      <td>${u.role}</td>
+      <td>${isBlocked ? 'Blocked' : 'Active'}</td>
+      <td>${new Date(u.updatedAt).toLocaleString()}</td>
+      <td>
+        ${isBlocked 
+          ? `<button class="btn btn-success btn-sm" onclick="unblockUser('${u._id}')">Unblock</button>`
+          : `<button class="btn btn-warning btn-sm" onclick="blockUser('${u._id}')">Block</button>`}
+        <button class="btn btn-danger btn-sm" onclick="deleteUser('${u._id}')">Delete</button>
+      </td>
+    `;
+    table.appendChild(tr);
+  });
+
+  const btn = document.getElementById('toggleUsersBtn');
+  if(usersData.length <=5) btn.style.display='none';
+  else { btn.style.display='inline-block'; btn.innerText = usersShowAll ? 'Show Less' : 'Show More'; }
+}
+
+// Toggle Users
+document.getElementById('toggleUsersBtn').addEventListener('click', () => {
+  usersShowAll = !usersShowAll;
+  renderUsers();
+});
+
+// ===========================
+// REPORTS
+// ===========================
+async function loadReports() {
+  try {
+    const res = await axios.get(`${apiBase}/api/reports`);
+    reportsData = res.data;
+    reportsShowAll = false;
+    renderReports();
+  } catch (err) { console.error(err); alert('Failed to load reports.'); }
+}
+
+function renderReports() {
+  const table = document.getElementById('reportsTable');
+  table.innerHTML = '';
+
+  const rows = reportsShowAll ? reportsData : reportsData.slice(0,5);
+
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.user?.name || 'Unknown'}</td>
+      <td>${r.user?.email || 'N/A'}</td>
+      <td>${r.action}</td>
+      <td>${new Date(r.createdAt).toLocaleString()}</td>
+    `;
+    table.appendChild(tr);
+  });
+
+  const btn = document.getElementById('toggleReportsBtn');
+  if(reportsData.length <=5) btn.style.display='none';
+  else { btn.style.display='inline-block'; btn.innerText = reportsShowAll ? 'Show Less' : 'Show More'; }
+}
+
+// Toggle Reports
+document.getElementById('toggleReportsBtn').addEventListener('click', () => {
+  reportsShowAll = !reportsShowAll;
+  renderReports();
+});
+
+// ===========================
+// BLOCK / UNBLOCK / DELETE
+// ===========================
+async function blockUser(id) {
+  if(!confirm('Block this user?')) return;
+  try { await axios.put(`${apiBase}/api/admin/block-user/${id}`); loadUsers(); } 
+  catch(err){ console.error(err); alert('Failed to block user'); }
+}
+
+async function unblockUser(id) {
+  if(!confirm('Unblock this user?')) return;
+  try {
+    const res = await axios.put(`${apiBase}/api/admin/unblock-user/${id}`);
+    console.log(res.data); // debugging
+    alert('User unblocked successfully!');
+    loadUsers(); // refresh table
+  } catch (err) {
+    console.error(err.response?.data || err);
+    alert('Failed to unblock user.');
+  }
+}
+
+
+async function deleteUser(id) {
+  if(!confirm('Delete this user?')) return;
+  try { await axios.delete(`${apiBase}/api/admin/delete-user/${id}`); loadUsers(); } 
+  catch(err){ console.error(err); alert('Failed to delete user'); }
+      // Prevent admin deletion
+    if (user.role === "admin") {
+      return res.status(403).json({ success: false, message: "Admin cannot be deleted" });
+    }
+
+}
+
+// ===========================
+// LOGOUT
+// ===========================
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  try { await axios.post(`${apiBase}/api/logout`); window.location.href='/signin'; } 
+  catch(err){ console.error(err); }
+});
+
+// ===========================
+// INITIAL LOAD
+// ===========================
+document.getElementById('loadUsersBtn').addEventListener('click', loadUsers);
+document.getElementById('loadReportsBtn').addEventListener('click', loadReports);
+
+const isAdminUser = u.role === 'admin';
+tr.innerHTML = `
+  <td>${u.name}</td>
+  <td>${u.email}</td>
+  <td>${u.role}</td>
+  <td>${u.blocked ? 'Blocked' : 'Active'}</td>
+  <td>${new Date(u.updatedAt).toLocaleString()}</td>
+  <td>
+    ${isAdminUser ? '' : u.blocked 
+      ? `<button class="btn btn-success btn-sm" onclick="unblockUser('${u._id}')">Unblock</button>`
+      : `<button class="btn btn-warning btn-sm" onclick="blockUser('${u._id}')">Block</button>`}
+    ${isAdminUser ? '' : `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u._id}')">Delete</button>`}
+  </td>
+`;
+
+</script>
+</body>
+</html>

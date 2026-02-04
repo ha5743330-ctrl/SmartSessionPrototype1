@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Join Smart Session</title>
+  <link rel="stylesheet" href="/style.css">
+
+  <style>
+      body {
+        margin: 0;
+        font-family: Poppins, sans-serif;
+        background: url('/images/report-background.jpg') center/cover no-repeat fixed;
+        background-color: rgba(0,0,0,0.45);
+        background-blend-mode: overlay;
+
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgb(255, 255, 255);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(10px);
+      z-index: 10;
+      box-shadow: 0 0 15px rgba(0,255,255,0.3);
+    }
+    .logo { display: flex; align-items: center; gap: 8px; }
+    .logo-img { height: 40px; width: auto; }
+    nav ul { list-style: none; display: flex; margin: 0px 40px 0px 0px; padding: 0; transition: 0.3s; }
+    nav ul li { margin: 0 15px; }
+    nav ul li a { color: #101699; text-decoration: none; font-weight: 500; transition: 0.3s; }
+    nav ul li a:hover { color: #00ffcc; text-shadow: 0 0 10px #00ffcc; }
+
+    .menu-icon {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      width: 28px;
+      height: 20px;
+      justify-content: space-between;
+    }
+    .menu-icon div {
+      width: 100%;
+      height: 3px;
+      background-color: #101699;
+      border-radius: 2px;
+      transition: 0.3s;
+    }
+
+    .container {
+      background: rgba(255,255,255,0.1);
+      padding: 40px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      width: 90%;
+      max-width: 650px;
+      text-align: center;
+      /* box-shadow: 0 0 25px #00ffcc; */
+      margin: auto;
+      margin-top: 120px; /* navbar space */
+      margin-bottom: 80px; /* footer space */
+            clip-path: polygon(0 0, 100% 10%, 95% 100%, 5% 95%);
+
+    }
+/* Purani styling ko restore aur behtar karein */
+#sessionCode {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 16px;
+    box-sizing: border-box; /* Taake padding width se bahar na nikalay */
+}
+
+#sessionCode::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+#joinBtn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: #00ffaa;
+    color: #000;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-bottom: 20px;
+}
+
+#joinBtn:hover {
+    background: #00e5ff;
+    box-shadow: 0 0 15px rgba(0, 255, 170, 0.5);
+}
+  
+    
+
+.control-center {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+.button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.btn-group {
+    padding: 15px 5px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.blue { background: #00d2ff; color: #fff; }
+.green { background: #00ffaa; color: #000; }
+.orange { background: #ffaa00; color: #fff; }
+.full-width { width: 100%; margin-top: 10px; }
+
+@media (max-width: 500px) {
+    .button-group { grid-template-columns: 1fr; }
+}
+    #connectingText { display:none; color: #00ffaa; font-weight: bold; margin-bottom: 15px; }
+
+    video {
+      width: 100%;
+      max-height: 500px;
+      background: black;
+      border: 1px solid #00ffaa;
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+
+    footer {
+  margin-top: auto;
+  width: 100%;
+  background: rgba(0,0,0,0.6);
+  padding: 15px;
+  text-align: center;
+  color: white;
+  font-size: 14px;
+}
+
+
+    .control-buttons {
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .control-buttons button {
+      width: auto;
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #000;
+    }
+    .btn-danger {
+      background-color: #ff4d4f;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn-danger:hover {
+      background-color: #ff7875;
+    }
+
+    @media (max-width: 900px) {
+      nav ul {
+        position: absolute;
+        top: 65px;
+        left: 0;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        flex-direction: column;
+        align-items: center;
+        max-height: 0;
+        overflow: hidden;
+      }
+      nav ul.active { max-height: 500px; padding: 10px 0; }
+      nav ul li { margin: 15px 0; }
+      .menu-icon { display: flex; margin: 0px 40px 0px 0px; }
+    }
+    .menu-icon.active div:nth-child(1) { transform: rotate(45deg) translateY(8px); }
+    .menu-icon.active div:nth-child(2) { opacity: 0; }
+    .menu-icon.active div:nth-child(3) { transform: rotate(-45deg) translateY(-8px); }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="logo">
+      <img src="/images/logo1.png" class="logo-img">
+    </div>
+    <div class="menu-icon" id="menu-icon">
+      <div></div><div></div><div></div>
+    </div>
+    <ul id="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/signin">Sign In</a></li>
+      <li><a href="/create-session">Start Session</a></li>
+      <li><a href="/join-session">Join Session</a></li>
+      <li><a href="/view-sessions">View Sessions</a></li>
+      <li><a href="/reports">Reports</a></li>
+      <li><a href="#" id="logoutBtn">Logout</a></li>
+    </ul>
+  </nav>
+
+  <!-- Join Container -->
+  <div class="container">
+    <h1>Join Smart Session</h1>
+
+    <input type="text" id="sessionCode" placeholder="Enter Session Code">
+    <button id="joinBtn">Join Session</button>
+
+    <div id="connectingText">🔗 Connecting to host...</div>
+
+    <!-- Remote Screen -->
+    <video id="remoteVideo" autoplay playsinline></video>
+
+    <!-- Control Buttons -->
+<div class="control-center">
+    <h3>Session Controls</h3>
+    <div class="button-group">
+        <button id="fileShareBtn" class="btn-group blue">📁 File Share</button>
+        
+        <button id="remoteControlBtn" class="btn-group green">🖱️ Remote Access</button>
+        
+        <button id="basicControlBtn" class="btn-group orange">⚙️ Basic Controls</button>
+
+        <button id="laserBtn"  class="btn-group orange"">🔴 Laser Pointer</button>
+    <button id="sendTextBtn"  class="btn-group orange">⌨️ Send Text</button>
+    <button id="screenshotBtn"  class="btn-group orange">📸 Screenshot</button>
+  </div>
+    
+</div>
+
+  </div>
+  <div class="control-buttons">
+
+</div>
+  <footer>© 2025 SmartSession | All Rights Reserved</footer>
+
+  <!-- Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/signaling.js"></script>
+
+  <script>
+    const socket = io();
+    
+    // UI Elements
+    const joinBtn = document.getElementById("joinBtn");
+    const codeInput = document.getElementById("sessionCode");
+    const connecting = document.getElementById("connectingText");
+    const remoteVideo = document.getElementById("remoteVideo");
+    const endSessionBtn = document.getElementById("endSessionBtn");
+    
+    // States
+    let isRemoteEnabled = false;
+    let laserEnabled = false;
+
+    // --- Helper Function (Bohat Zaroori) ---
+    function sendControlEvent(type, data) {
+        if (!window.currentRoom) return;
+        socket.emit("viewer-control", { 
+            roomId: window.currentRoom, 
+            type: type, 
+            data: data 
+        });
+    }
+
+    // --- 1. Join Session Logic ---
+    joinBtn.addEventListener("click", async () => {
+        const sessionCode = codeInput.value.trim();
+        if (!sessionCode) return alert("Enter a session code.");
+
+        connecting.style.display = "block";
+        connecting.textContent = "⏳ Establishing Connection...";
+
+        const res = await fetch("/api/join-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionCode })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+            connecting.textContent = "❌ " + data.message;
+            return;
+        }
+
+        connecting.textContent = "🔗 Connected to Host!";
+        window.currentRoom = sessionCode; 
+        window.joinRoomAsViewer(sessionCode, remoteVideo);
+    });
+
+    // --- 2. File Share Logic ---
+    document.getElementById("fileShareBtn").onclick = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file || !window.currentRoom) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                sendControlEvent("file-transfer", {
+                    fileName: file.name,
+                    fileType: file.type,
+                    blob: reader.result 
+                });
+                alert(`File "${file.name}" sent successfully!`);
+            };
+            reader.readAsArrayBuffer(file);
+        };
+        input.click();
+    };
+
+    // --- 3. Toggles (Laser & Remote) ---
+    document.getElementById("laserBtn").onclick = () => {
+        laserEnabled = !laserEnabled;
+        isRemoteEnabled = false; // Aik waqt mein aik kaam
+        alert(laserEnabled ? "🔴 Laser Pointer On" : "Laser Off");
+    };
+
+    document.getElementById("remoteControlBtn").onclick = function() {
+        isRemoteEnabled = !isRemoteEnabled;
+        laserEnabled = false;
+        this.style.border = isRemoteEnabled ? "3px solid white" : "none";
+        this.textContent = isRemoteEnabled ? "🔒 Stop Access" : "🖱️ Remote Access";
+        alert(isRemoteEnabled ? "🖱️ Remote Control Active" : "Control Disabled");
+    };
+
+    // --- 4. Mouse & Interaction Logic ---
+    remoteVideo.addEventListener("mousemove", (e) => {
+        if (!window.currentRoom || (!isRemoteEnabled && !laserEnabled)) return;
+        
+        const rect = remoteVideo.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+
+        if (isRemoteEnabled) {
+            sendControlEvent("mouse-move", { x, y });
+        } else if (laserEnabled) {
+            sendControlEvent("pointer-move", { x, y });
+        }
+    });
+
+    remoteVideo.addEventListener("click", (e) => {
+        if (!isRemoteEnabled) return;
+        sendControlEvent("mouse-click", {});
+    });
+
+    // --- 5. Keyboard Logic ---
+    document.addEventListener("keydown", (e) => {
+        if (!isRemoteEnabled) return;
+        sendControlEvent("key-down", { key: e.key });
+    });
+
+    document.addEventListener("keyup", (e) => {
+        if (!isRemoteEnabled) return;
+        sendControlEvent("key-up", { key: e.key });
+    });
+
+    // --- 6. Text & System Commands ---
+    document.getElementById("sendTextBtn").onclick = () => {
+        const text = prompt("Enter text to send to host:");
+        if (text) sendControlEvent("text-data", { text });
+    };
+
+    document.getElementById("basicControlBtn").onclick = () => {
+        const action = prompt("Type command: 'refresh', 'screenshot', 'fullscreen'");
+        if (action) {
+            socket.emit("system-command", { roomId: window.currentRoom, command: action });
+        }
+    };
+
+    // --- 7. Session End & Navbar ---
+    if (endSessionBtn) {
+        endSessionBtn.addEventListener("click", () => {
+            if (confirm("Leave session?")) window.location.href = "/";
+        });
+    }
+
+    socket.on("sessionEnded", () => {
+        alert("Host has ended the session!");
+        window.location.href = "/";
+    });
+
+    document.getElementById("logoutBtn").onclick = async () => {
+        await fetch("/api/logout", { method: "POST" });
+        window.location.href = "/";
+    };
+
+    const menuIcon = document.getElementById('menu-icon');
+    const navLinks = document.getElementById('nav-links');
+    menuIcon.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        menuIcon.classList.toggle('active');
+    });
+</script>
+<script>
+    const video = document.getElementById('video');
+    const btn = document.getElementById('capture-btn');
+
+    const status = document.getElementById('status');
+
+    const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
+
+    async function setupRegistration() {
+        try {
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+                faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+                faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+            ]);
+
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+
+            video.onloadedmetadata = () => {
+                btn.disabled = false;
+                btn.textContent = "Capture & Save Face";
+                status.textContent = "System Ready. Please look at the camera.";
+            };
+        } catch (err) {
+            status.textContent = "Camera access or model loading failed.";
+            status.classList.add('error');
+            console.error(err);
+        }
+    }
+
+    btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        status.textContent = "Processing features... Hold still.";
+        status.className = "status-box";
+
+        // Detect face with landmarks and descriptor
+        const detection = await faceapi.detectSingleFace(video, detectorOptions)
+                                        .withFaceLandmarks()
+                                        .withFaceDescriptor();
+
+        if (!detection) {
+            status.textContent = "Face not detected. Ensure face is centered and clear.";
+            status.classList.add('error');
+            btn.disabled = false;
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/face/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    descriptor: Array.from(detection.descriptor) 
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                status.textContent = "Face Registered Successfully!";
+                status.className = "status-box success";
+                setTimeout(() => window.location.href = result.redirect || '/signin', 2000);
+            } else {
+                status.textContent = result.message || "Registration failed.";
+                status.classList.add('error');
+                btn.disabled = false;
+            }
+        } catch (err)
+        {
+            status.textContent = "Server error during registration.";
+            status.classList.add('error');
+            console.error(err);
+            btn.disabled = false;
+        }
+    });
+    window.onload = setupRegistration;
+</script>
+</body>
+</html>
+

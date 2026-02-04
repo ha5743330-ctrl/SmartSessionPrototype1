@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Verification | SmartSession</title>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <style>
+        /* Shared CSS from registration for consistency */
+        :root { --primary: #4a90e2; --success: #2ecc71; --error: #e74c3c; --dark: #2c3e50; }
+        body { font-family: 'Poppins', sans-serif; background: #f0f4f8; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 35px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 400px; text-align: center; }
+        #video-container { position: relative; width: 300px; height: 300px; margin: 20px auto; border-radius: 12px; overflow: hidden; border: 3px solid #e2e8f0; }
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        .btn-verify { background: #2d3748; color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; }
+        .status { margin-top: 15px; font-size: 15px; font-weight: 500; color: #4a5568; }
+        .success-text { color: var(--success); }
+        .error-text { color: var(--error); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Identity Check</h2>
+    <p>Please verify your face to continue</p>
+    
+    <div id="video-container">
+        <video id="video" autoplay muted playsinline></video>
+    </div>
+
+    <div id="message" class="status">Loading Security Layer...</div>
+    <button id="verify-btn" class="btn-verify" disabled>Verify Now</button>
+</div>
+
+<script>
+    const video = document.getElementById('video');
+    const verifyBtn = document.getElementById('verify-btn');
+    const message = document.getElementById('message');
+
+    async function initVerification() {
+        try {
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+                faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+                faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+            ]);
+
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            
+            verifyBtn.disabled = false;
+            message.textContent = "Face ID Ready";
+        } catch (err) {
+            message.textContent = "Hardware Error: Check Camera.";
+            console.error(err);
+        }
+    }
+
+    verifyBtn.addEventListener('click', async () => {
+        verifyBtn.disabled = true;
+        message.textContent = "Scanning Identity...";
+        message.className = "status";
+
+        const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                                        .withFaceLandmarks()
+                                        .withFaceDescriptor();
+
+        if (!detection) {
+            message.textContent = "Identity Not Detected. Adjust Position.";
+            message.classList.add('error-text');
+            verifyBtn.disabled = false;
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/face/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    liveDescriptor: Array.from(detection.descriptor) 
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                message.textContent = "Verification Successful! ✔";
+                message.className = "status success-text";
+                // Redirect user to their dashboard/home
+                setTimeout(() => window.location.href = '/', 1500);
+            } else {
+                message.textContent = data.message || "Face Mismatch. Access Denied.";
+                message.className = "status error-text";
+                verifyBtn.disabled = false;
+            }
+        } catch (err) {
+            message.textContent = "Server Time Out.";
+            message.classList.add('error-text');
+            verifyBtn.disabled = false;
+        }
+    });
+
+    window.onload = initVerification;
+</script>
+</body>
+</html>
