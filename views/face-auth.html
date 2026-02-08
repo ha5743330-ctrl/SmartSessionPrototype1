@@ -3,46 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Registration | SmartSession</title>
+    <title>Face ID Registration | SmartSession</title>
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --primary: #4a90e2; --success: #2ecc71; --error: #e74c3c; --dark: #2c3e50; }
-        body { font-family: 'Poppins', sans-serif; background: #f8f9fa; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 400px; text-align: center; }
-        #video-container { position: relative; width: 320px; height: 320px; margin: 20px auto; border-radius: 50%; overflow: hidden; border: 5px solid var(--primary); background: #000; }
-        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        .status-box { margin: 15px 0; padding: 10px; border-radius: 8px; font-size: 14px; min-height: 20px; background: #f1f3f5; }
-        .btn-register { background: var(--primary); color: white; border: none; padding: 14px 30px; border-radius: 30px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.3s; }
-        .btn-register:disabled { background: #cbd5e0; cursor: not-allowed; }
-        .error { color: var(--error); background: #fff5f5; border: 1px solid var(--error); }
-        .success { color: var(--success); background: #f0fff4; border: 1px solid var(--success); }
+        :root {
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --success: #10b981;
+            --error: #ef4444;
+            --bg: #0f172a;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #1e293b, #0f172a);
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* --- Main Container --- */
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 28px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+
+        p { color: #94a3b8; font-size: 15px; margin-bottom: 30px; }
+
+        /* --- AI Scanning Circle --- */
+        .video-wrapper {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Animated Scanning Border */
+        .video-wrapper::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            padding: 4px; /* Border thickness */
+            background: conic-gradient(from 0deg, transparent, var(--primary), transparent 60%);
+            animation: rotate 2s linear infinite;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: destination-out;
+            mask-composite: exclude;
+        }
+
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+
+        #video-container {
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 0 30px var(--primary-glow);
+            position: relative;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        /* --- Status & Messages --- */
+        .status-box {
+            margin: 20px 0;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #cbd5e1;
+        }
+
+        .status-box.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .status-box.success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #6ee7b7;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* --- Premium Button --- */
+        .btn-register {
+            background: var(--primary);
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-register:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.5);
+        }
+
+        .btn-register:active:not(:disabled) { transform: scale(0.98); }
+
+        .btn-register:disabled {
+            background: #334155;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Background Decor */
+        .orb {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+            filter: blur(100px);
+            opacity: 0.15;
+            z-index: 0;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
 
+<div class="orb" style="top: -100px; right: -100px;"></div>
+<div class="orb" style="bottom: -100px; left: -100px;"></div>
+
 <div class="container">
-    <h2 style="color: var(--dark);">Register Face</h2>
-    <p style="color: #718096; font-size: 14px;">Secure your account using Face ID</p>
+    <h2>Face Registration</h2>
+    <p>Look directly at the camera to scan.</p>
     
-    <div id="video-container">
-        <video id="video" autoplay muted playsinline></video>
+    <div class="video-wrapper">
+        <div id="video-container">
+            <video id="video" autoplay muted playsinline></video>
+        </div>
     </div>
 
-    <div id="status" class="status-box">Initialising AI Models...</div>
-    <button id="register-btn" class="btn-register" disabled>Please Wait...</button>
+    <div id="status" class="status-box">Initialising AI Engine...</div>
+    <button id="register-btn" class="btn-register" disabled>Initializing...</button>
 </div>
 
 <script>
+    // Javascript Logic Same Rahega Jo Aapne Diya Hai
     const video = document.getElementById('video');
     const btn = document.getElementById('register-btn');
     const status = document.getElementById('status');
-
-    // Production settings for accuracy
     const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.6 });
 
     async function setupRegistration() {
         try {
-            // Loading models from your local path
             await Promise.all([
                 faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
                 faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
@@ -56,29 +220,27 @@
 
             video.onloadedmetadata = () => {
                 btn.disabled = false;
-                btn.textContent = "Capture & Save Face";
-                status.textContent = "System Ready. Please look at the camera.";
+                btn.textContent = "Start Face Scan";
+                status.textContent = "Biometric system ready.";
             };
         } catch (err) {
-            status.textContent = "Camera access or model loading failed.";
+            status.textContent = "Hardware error: Camera not found.";
             status.classList.add('error');
-            console.error(err);
         }
     }
 
     btn.addEventListener('click', async () => {
         btn.disabled = true;
-        status.textContent = "Processing features... Hold still.";
+        status.textContent = "Scanning features... Hold steady.";
         status.className = "status-box";
 
-        // Detect face with landmarks and descriptor
         const detection = await faceapi.detectSingleFace(video, detectorOptions)
                                         .withFaceLandmarks()
                                         .withFaceDescriptor();
 
         if (!detection) {
-            status.textContent = "Face not detected. Ensure face is centered and clear.";
-            status.classList.add('error');
+            status.textContent = "Scan failed. Face not detected.";
+            status.className = "status-box error";
             btn.disabled = false;
             return;
         }
@@ -87,25 +249,23 @@
             const response = await fetch('/api/face/upload', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    descriptor: Array.from(detection.descriptor) 
-                })
+                body: JSON.stringify({ descriptor: Array.from(detection.descriptor) })
             });
 
             const result = await response.json();
-
             if (result.success) {
-                status.textContent = "Face Registered Successfully!";
+                status.textContent = "Biometric ID Registered!";
                 status.className = "status-box success";
+                btn.textContent = "Success ✓";
                 setTimeout(() => window.location.href = result.redirect || '/signin', 2000);
             } else {
-                status.textContent = result.message || "Registration failed.";
-                status.classList.add('error');
+                status.textContent = result.message || "Encryption failed.";
+                status.className = "status-box error";
                 btn.disabled = false;
             }
         } catch (err) {
-            status.textContent = "Server connection lost. Try again.";
-            status.classList.add('error');
+            status.textContent = "Network error. Try again.";
+            status.className = "status-box error";
             btn.disabled = false;
         }
     });

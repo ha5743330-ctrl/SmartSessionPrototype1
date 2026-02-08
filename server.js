@@ -109,13 +109,18 @@ app.get('/face-verify', (req, res) => {
 // AUTH APIs
 // ============================
 
-// Register
 app.post('/api/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    // 1. Validation for New Users
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    // 2. Strong Password Policy (New Users ke liye)
+    if (password.length < 8) {
+        return res.status(400).json({ success: false, message: "Password must be at least 8 characters." });
     }
 
     const existing = await User.findOne({ email });
@@ -123,24 +128,15 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ success: false, message: "Email already registered" });
     }
 
+    // Naya user create karein (Hook automatically hash kar dega)
     const newUser = new User({ name, email, password });
     await newUser.save();
 
-    // Session regenerate
+    // Session Logic (Wahi jo aapne di thi)
     req.session.regenerate((err) => {
       if (err) return res.status(500).json({ success: false });
-
-      req.session.tempUser = {
-        id: newUser._id,
-        email: newUser.email,
-        role: newUser.role
-      };
-
-      res.json({
-        success: true,
-        redirect: "/face-auth",
-        message: "Account created. Please register your face."
-      });
+      req.session.tempUser = { id: newUser._id, email: newUser.email, role: newUser.role };
+      res.json({ success: true, redirect: "/face-auth", message: "Account created securely." });
     });
 
   } catch (err) {
@@ -411,6 +407,7 @@ app.delete('/api/admin/delete-user/:id', isAdmin, async (req,res)=>{
 });
 
 
+
 // ============================
 // SESSION APIs
 // ============================
@@ -572,7 +569,96 @@ app.get('/api/admin/db-reset', async (req, res) => {
         console.log(`Control Sent: ${type} to Room: ${roomId}`);
     });
 });
+// ============================
+// SETTINGS & PROFILE APIS
+// ============================
 
+// 1. Get Settings Page (View Route)
+app.get('/settings', isLoggedIn, (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'settings.html'));
+});
+
+// 2. Update Profile Name
+app.put('/api/user/update-profile', isLoggedIn, async (req, res) => {
+    const { username } = req.body;
+    const userId = req.session.user.id; // Session se user ID uthali
+
+    if (!username || username.trim().length < 3) {
+        return res.status(400).json({ success: false, message: "Name must be at least 3 characters." });
+    }
+
+    try {
+        const updatedUser = await User.findByIdAndUpdate(
+            userId, 
+            { name: username }, 
+            { new: true } // updated data wapas laane ke liye
+        );
+
+        // Session mein bhi name update karein taake UI refresh na karni paray
+        req.session.user.name = updatedUser.name;
+
+        res.json({ success: true, message: "Profile updated successfully!", newName: updatedUser.name });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Server Error: " + err.message });
+    }
+});
+
+// 3. Change Password
+app.post('/api/user/change-password', isLoggedIn, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.session.user.id;
+
+    try {
+        const user = await User.findById(userId);
+        
+        // Current password match karein
+        const isMatch = await user.comparePassword(currentPassword);
+        if (!isMatch) {
+            return res.status(400).json({ success: false, message: "Current password is wrong" });
+        }
+
+        // Naya password set karein (User model automatically isay hash kar dega)
+        user.password = newPassword;
+        await user.save();
+
+        res.json({ success: true, message: "Password updated successfully!" });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Error updating password." });
+    }
+});
+
+// 4. Delete Account (Danger Zone)
+app.delete('/api/user/delete-account', isLoggedIn, async (req, res) => {
+    try {
+        const userId = req.session.user.id;
+        
+        // Database se user aur uska data remove karein
+        await User.findByIdAndDelete(userId);
+        await SessionModel.deleteMany({ user: userId });
+        await Report.deleteMany({ user: userId });
+
+        // Session khatam karein
+        req.session.destroy();
+        res.json({ success: true, message: "Account deleted permanently." });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Account deletion failed." });
+    }
+});
+// Get Current User Data
+app.get('/api/user/me', isLoggedIn, async (req, res) => {
+    try {
+        const user = await User.findById(req.session.user.id);
+        if (!user) return res.status(404).json({ success: false });
+        
+        res.json({ 
+            success: true, 
+            name: user.name, 
+            email: user.email 
+        });
+    } catch (err) {
+        res.status(500).json({ success: false });
+    }
+});
 
 // ============================
 // START SERVER

@@ -1,141 +1,400 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Encrypted File Transfer - Smart Session</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureTransfer | Enterprise Grade Encryption</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@lucide/icons"></script>
 
-  <!-- =========================
-       Styles
-  ========================= -->
-  <style>
-    /* Base styles */
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: url('/images/report-background.jpg') center/cover no-repeat fixed;
-      color: #333;
-    }
+    <style>
+        :root {
+            --primary-glow: #3b82f6;
+            --secondary-glow: #8b5cf6;
+            --bg-dark: #030712;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --text-main: #f8fafc;
+            --border-glass: rgba(255, 255, 255, 0.1);
+        }
 
-    .small-container {
-      max-width: 1200px;
-      margin: auto;
-      padding: 20px 15px;
-    }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+            background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent),
+                        radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.15), transparent);
+            min-height: 100vh;
+        }
 
-    /* Header */
-    .page-header {
-      text-align: center;
-      padding: 40px 20px;
-    }
+        /* --- Animated Background Elements --- */
+        .grid-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+            z-index: -1;
+        }
 
-    .page-header h1 {
-      font-size: 2rem;
-      color: #1e272e;
-      margin-bottom: 10px;
-    }
+        /* --- Navbar --- */
+        .navbar {
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-glass);
+            padding: 1.2rem 0;
+        }
 
-    .page-header p {
-      font-size: 1.1rem;
-      color: #555;
-    }
+        .brand-logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            /* -webkit-background-clip: text; */
+            -webkit-text-fill-color: transparent;
+        }
 
-    /* Feature details list */
-    .feature-details ul {
-      max-width: 800px;
-      margin: auto;
-      list-style: disc inside;
-      padding: 20px;
-      font-size: 1.05rem;
-      color: #333;
-    }
+        /* --- Main Hero Section --- */
+        .hero-container {
+            padding-top: 120px;
+            padding-bottom: 80px;
+        }
 
-    .feature-details li {
-      margin-bottom: 15px;
-    }
+        .glass-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
 
-    /* Feature image */
-    .feature-image {
-      text-align: center;
-      margin: 30px 0;
-    }
+        /* --- Professional Dropzone --- */
+        .upload-area {
+            border: 2px dashed #374151;
+            border-radius: 20px;
+            padding: 60px 20px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            background: rgba(31, 41, 55, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
 
-    .feature-image img {
-      max-width: 35%;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    }
+        .upload-area:hover {
+            border-color: var(--primary-glow);
+            background: rgba(59, 130, 246, 0.05);
+            transform: translateY(-2px);
+        }
 
-    /* Back link */
-    .back-link {
-      text-align: center;
-      margin: 40px 0;
-    }
+        .upload-area i {
+            font-size: 3rem;
+            color: var(--primary-glow);
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4));
+        }
 
-    .back-link a {
-      text-decoration: none;
-      background: #1e90ff;
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 8px;
-      transition: 0.3s;
-    }
+        /* --- File List & Progress --- */
+        .file-list {
+            margin-top: 30px;
+            display: none;
+        }
 
-    .back-link a:hover {
-      background: #3742fa;
-    }
+        .file-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-    /* Responsive */
-    @media (max-width: 768px) {
-      .page-header h1 {
-        font-size: 1.6rem;
-      }
-      .feature-details ul {
-        font-size: 1rem;
-      }
-      .feature-image img {
-        max-width: 70%;
-      }
-    }
-  </style>
+        .progress-bar-custom {
+            height: 6px;
+            background: #1f2937;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary-glow), var(--secondary-glow));
+            transition: width 0.3s ease;
+        }
+
+        /* --- Feature Cards --- */
+        .feature-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-glass);
+            padding: 30px;
+            border-radius: 20px;
+            height: 100%;
+            transition: 0.3s;
+        }
+
+        .feature-card:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: var(--primary-glow);
+        }
+
+        .icon-box {
+            width: 50px;
+            height: 50px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-glow);
+            margin-bottom: 20px;
+        }
+
+        /* --- Buttons --- */
+        .btn-premium {
+            background: linear-gradient(135deg, var(--primary-glow), var(--secondary-glow));
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            color: white;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+            color: white;
+        }
+
+        /* --- Security Badge --- */
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- =========================
-       Page Header
-  ========================= -->
-  <header class="page-header">
-    <h1>Encrypted File Transfer</h1>
-    <p>Send and receive files securely with end-to-end encryption and fast transfer speeds.</p>
-  </header>
+    <div class="grid-overlay"></div>
 
-  <!-- =========================
-       Features List
-  ========================= -->
-  <section class="feature-details small-container">
-    <ul>
-      <li><strong>Secure encryption:</strong> All files are encrypted for maximum privacy.</li>
-      <li><strong>Fast transfers:</strong> Large files move quickly with minimal delays.</li>
-      <li><strong>Cross-platform:</strong> Works on Windows, Mac, and Linux devices.</li>
-      <li><strong>Drag & Drop:</strong> Easy file selection and transfer interface.</li>
-      <li><strong>Transfer history:</strong> Track sent and received files for reference.</li>
-    </ul>
-  </section>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand brand-logo" href="../index.html">SmartSession.</a>
+            <div class="ms-auto">
+                <i class="fas fa-arrow-left me-2"></i> RETURN TO TERMINAL
+                </a>
+                    <i class="fas fa-arrow-left me-2"></i> RETURN TO TERMINAL
+                </a>
+            </div>
+        </div>
+    </nav>
 
-  <!-- =========================
-       Feature Image
-  ========================= -->
-  <section class="feature-image small-container">
-    <img src="../images/dashboard-img.png" alt="File Transfer">
-  </section>
+    <div class="hero-container container">
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-5">
+                <div class="glass-panel">
+                    <div class="security-badge">
+                        <div class="status-dot"></div>
+                        AES-256 BIT ENCRYPTION ACTIVE
+                    </div>
+                    
+                    <h2 class="fw-bold mb-4">Send Securely</h2>
+                    
+                    <div id="uploadPhase">
+                        <div class="upload-area" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                            <input type="file" id="fileInput" hidden multiple>
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h5 class="fw-bold">Drop files here</h5>
+                            <p class="text-muted small">Max file size: 2.5 GB (Enterprise Level)</p>
+                            <button class="btn btn-outline-primary btn-sm mt-3 px-4">Or Browse</button>
+                        </div>
+                    </div>
 
-  <!-- =========================
-       Back Link
-  ========================= -->
-  <div class="back-link small-container">
-    <a href="../index.html">⬅ Back to Home</a>
-  </div>
+                    <div class="file-list" id="fileListArea">
+                        <h6 class="fw-bold mb-3">Syncing to Secure Vault...</h6>
+                        <div id="fileItems"></div>
+                        <div class="mt-4 d-grid">
+                            <button class="btn btn-premium" id="transferBtn">Start Encrypted Transfer</button>
+                        </div>
+                    </div>
 
+                    <div class="mt-4 p-3 rounded-4 bg-dark bg-opacity-50">
+                        <div class="d-flex gap-3 align-items-center">
+                            <i class="fas fa-info-circle text-primary"></i>
+                            <p class="small text-muted mb-0">Files are automatically scrubbed from our servers after 24 hours.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="ps-lg-5">
+                    <h1 class="display-4 fw-bold mb-4">Quantum-Safe <br><span class="text-primary">File Governance.</span></h1>
+                    <p class="lead text-muted mb-5">Move your intellectual property through a fortified tunnel. No eavesdropping, no data-mining, just pure transmission.</p>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="feature-card">
+                                <div class="icon-box"><i class="fas fa-user-shield"></i></div>
+                                <h5 class="fw-bold">End-to-End</h5>
+                                <p class="small text-muted mb-0">Encryption keys are generated on your device. We never see your data.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="feature-card">
+                                <div class="icon-box"><i class="fas fa-bolt"></i></div>
+                                <h5 class="fw-bold">P2P Speed</h5>
+                                <p class="small text-muted mb-0">Direct peer-to-peer tunnels for maximum bandwidth utilization.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="feature-card">
+                                <div class="icon-box"><i class="fas fa-infinity"></i></div>
+                                <h5 class="fw-bold">Cross Platform</h5>
+                                <p class="small text-muted mb-0">Seamlessly sync between Linux servers, Windows nodes, and Mac devices.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="feature-card">
+                                <div class="icon-box"><i class="fas fa-history"></i></div>
+                                <h5 class="fw-bold">Audit Logs</h5>
+                                <p class="small text-muted mb-0">Full visibility into transfer history with immutable logging.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pb-5">
+        <div class="glass-panel py-4 text-center">
+            <div class="row">
+                <div class="col-md-3 border-end border-secondary">
+                    <h3 class="fw-bold mb-0">256-bit</h3>
+                    <p class="text-muted small">Standard Encryption</p>
+                </div>
+                <div class="col-md-3 border-end border-secondary">
+                    <h3 class="fw-bold mb-0">0%</h3>
+                    <p class="text-muted small">Data Knowledge</p>
+                </div>
+                <div class="col-md-3 border-end border-secondary">
+                    <h3 class="fw-bold mb-0">2.5 GB</h3>
+                    <p class="text-muted small">Single File Limit</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 class="fw-bold mb-0">99.9%</h3>
+                    <p class="text-muted small">Uptime Reliability</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-5 text-muted small">
+        &copy; 2026 SmartSession Infrastructure. Protected by RSA-4096.
+    </footer>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const dropzone = document.getElementById('dropzone');
+        const fileListArea = document.getElementById('fileListArea');
+        const uploadPhase = document.getElementById('uploadPhase');
+        const fileItems = document.getElementById('fileItems');
+        const transferBtn = document.getElementById('transferBtn');
+
+        // Handle File Selection
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        // Drag & Drop Handling
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            handleFiles(dt.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                uploadPhase.style.display = 'none';
+                fileListArea.style.display = 'block';
+                
+                Array.from(files).forEach(file => {
+                    const size = (file.size / (1024 * 1024)).toFixed(2);
+                    const fileHtml = `
+                        <div class="file-item">
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small fw-bold text-truncate" style="max-width: 200px;">${file.name}</span>
+                                    <span class="small text-muted">${size} MB</span>
+                                </div>
+                                <div class="progress-bar-custom">
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <i class="fas fa-times ms-3 text-muted pointer" onclick="this.parentElement.remove()"></i>
+                        </div>
+                    `;
+                    fileItems.insertAdjacentHTML('beforeend', fileHtml);
+                });
+            }
+        }
+
+        // Simulate Upload
+        transferBtn.addEventListener('click', () => {
+            transferBtn.disabled = true;
+            transferBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Encrypting...';
+            
+            const fills = document.querySelectorAll('.progress-fill');
+            fills.forEach((fill, index) => {
+                setTimeout(() => {
+                    fill.style.width = '100%';
+                    if(index === fills.length - 1) {
+                        setTimeout(() => {
+                            alert('Protocol Complete: Files encrypted and stored in secure tunnel.');
+                            location.reload();
+                        }, 1000);
+                    }
+                }, (index + 1) * 800);
+            });
+        });
+    </script>
 </body>
 </html>

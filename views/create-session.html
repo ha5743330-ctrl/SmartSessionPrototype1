@@ -1,163 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Create Smart Session</title>
-  <link rel="stylesheet" href="/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSession | Host Control Center</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --neon-cyan: #00ffcc;
+            --neon-blue: #00e5ff;
+            --danger-red: #ff4d4f;
+            --glass-bg: rgba(255, 255, 255, 0.07);
+        }
 
-  <style>
-/* SAME DESIGN YOU PROVIDED */
-body {
-  margin: 0;
-  font-family: "Poppins", sans-serif;
-  background-image: url('/images/report-background.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-color: rgba(0,0,0,0.5);
-  background-blend-mode: overlay;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  overflow-x: hidden;
-}
-nav {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  background: rgb(255, 255, 255);
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  backdrop-filter: blur(10px);
-  z-index: 10;
-  box-shadow: 0 0 15px rgba(0,255,255,0.3);
-}
-.logo { display: flex; align-items: center; gap: 8px; }
-.logo-img { height: 40px; width: auto; }
-nav ul { list-style: none; display: flex; margin: 0px 40px 0px 0px; padding: 0; transition: 0.3s; }
-nav ul li { margin: 0 15px; }
-nav ul li a { color: #101699; text-decoration: none; font-weight: 500; transition: 0.3s; }
-nav ul li a:hover { color: #00ffcc; text-shadow: 0 0 10px #00ffcc; }
-.menu-icon { display: none; flex-direction: column; cursor: pointer; width: 25px; height: 20px; justify-content: space-between; }
-.menu-icon div { width: 100%; height: 3px; background-color: #101699; border-radius: 2px; transition: 0.3s; }
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
+            background-image: url('/images/report-background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
 
-.container {
-  z-index: 2;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.2);
-  padding: 50px;
-  border-radius: 15px;
-  backdrop-filter: blur(10px);
-  clip-path: polygon(0 0, 100% 10%, 95% 100%, 5% 95%);
-  box-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffaa;
-  max-width: 700px;
-  width: 90%;
-  text-align: center;
-  margin-top: 120px;
-}
-h1 { font-size: 40px; color: #00ffcc; margin-bottom: 20px; }
-input {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border: none;
-  border-radius: 5px;
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  outline: none;
-}
-.btn-danger {
-    background-color: #ff4d4f;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-.btn-danger:hover {
-    background-color: #ff7875;
-}
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgb(255, 255, 255);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(10px);
+      z-index: 10;
+      box-shadow: 0 0 15px rgba(0,255,255,0.3);
+    }
+    .logo { display: flex; align-items: center; gap: 8px; }
+    .logo-img { height: 40px; width: auto; }
+    nav ul { list-style: none; display: flex; margin: 0px 40px 0px 0px; padding: 0; transition: 0.3s; }
+    nav ul li { margin: 0 15px; }
+    nav ul li a { color: #101699; text-decoration: none; font-weight: 500; transition: 0.3s; }
+    nav ul li a:hover { color: #00ffcc; text-shadow: 0 0 10px #00ffcc; }
 
-button {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 5px;
-  background: linear-gradient(90deg,#f5f4f7,#ff0000);
-  color: #000; font-weight:bold;
-  cursor: pointer;
-  transition: 0.3s;
-}
-button:hover {
-  background: linear-gradient(90deg,#00ffaa,#00e5ff);
-  box-shadow: 0 0 15px #00ffcc;
-}
+    .menu-icon {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      width: 28px;
+      height: 20px;
+      justify-content: space-between;
+    }
+    .menu-icon div {
+      width: 100%;
+      height: 3px;
+      background-color: #101699;
+      border-radius: 2px;
+      transition: 0.3s;
+    }
+        /* --- Main Layout --- */
+        .dashboard-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 100px 20px 40px;
+        }
 
-#sessionCodeBox {
-  display: none;
-  background: rgba(0,0,0,0.5);
-  padding: 20px;
-  margin-top: 20px;
-  border: 1px solid #00ffcc;
-  border-radius: 10px;
-}
-video {
-  width: 100%;
-  max-height: 400px;
-  margin-top: 15px;
-  border: 1px solid #00ffcc;
-  border-radius: 10px;
-}
-footer {
-  width: 100%;
-  background: rgba(0,0,0,0.7);
-  color: white;
-  text-align: center;
-  padding: 15px;
-  font-size: 14px;
-  margin-top: auto; /* magic line */
-}
+        .container {
+            background: var(--glass-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 204, 0.1);
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
 
+        h1 {
+            font-size: 32px;
+            background: linear-gradient(to right, var(--neon-cyan), var(--neon-blue));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+        }
 
-@media (max-width:900px) {
-  .menu-icon { display:flex; margin-right:30px; }
-  nav ul {
-    position:absolute;
-    top:65px; left:0;
-    width:100%;
-    background:rgba(0,0,0,0.9);
-    flex-direction:column;
-    align-items:center;
-    max-height:0;
-    overflow:hidden;
-    transition:max-height 0.3s ease;
-    box-shadow:0 8px 20px rgba(0,255,255,0.3);
-  }
-  nav ul.active { max-height:400px; padding:15px 0; }
-  nav ul li { margin:15px 0; }
-}
-.menu-icon.active div:nth-child(1) { transform: rotate(45deg) translateY(8px); }
-.menu-icon.active div:nth-child(2) { opacity: 0; }
-.menu-icon.active div:nth-child(3) { transform: rotate(-45deg) translateY(-8px); }
-  </style>
+        /* --- Input Section --- */
+        .setup-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        input {
+            width: 80%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 16px;
+            text-align: center;
+        }
+        input:focus { outline: none; border-color: var(--neon-cyan); box-shadow: 0 0 10px rgba(0, 255, 204, 0.2); }
+
+        .btn-main {
+            width: 80%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #00ffaa, #00e5ff);
+            color: #000;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.4s;
+        }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 255, 204, 0.3); }
+
+        /* --- Session Info --- */
+        #sessionCodeBox {
+            display: none;
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed var(--neon-cyan);
+            border-radius: 15px;
+            background: rgba(0, 255, 204, 0.05);
+            animation: fadeIn 0.5s ease;
+        }
+        #sessionCode { font-size: 28px; color: var(--neon-cyan); font-weight: bold; letter-spacing: 5px; }
+
+        /* --- Monitor Section --- */
+        #host-monitor {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            margin-top: 20px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+        video { width: 100%; height: 100%; object-fit: contain; }
+
+        .status-badge {
+            position: absolute;
+            top: 15px; left: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--neon-cyan);
+            z-index: 10;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .pulse-dot { width: 8px; height: 8px; background: var(--neon-cyan); border-radius: 50%; animation: blink 1s infinite; }
+    @media (max-width: 900px) {
+      nav ul {
+        position: absolute;
+        top: 65px;
+        left: 0;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        flex-direction: column;
+        align-items: center;
+        max-height: 0;
+        overflow: hidden;
+      }
+      nav ul.active { max-height: 500px; padding: 10px 0; }
+      nav ul li { margin: 15px 0; }
+      .menu-icon { display: flex; margin: 0px 40px 0px 0px; }
+    }
+    .menu-icon.active div:nth-child(1) { transform: rotate(45deg) translateY(8px); }
+    .menu-icon.active div:nth-child(2) { opacity: 0; }
+    .menu-icon.active div:nth-child(3) { transform: rotate(-45deg) translateY(-8px); }
+      nav ul li a:hover, nav ul li a.active { color: var(--white); border-bottom: 2px solid var(--accent-red); }
+        /* --- Controls --- */
+        .action-area { margin-top: 25px; display: flex; justify-content: center; gap: 15px; }
+        .btn-danger {
+            background: var(--danger-red);
+            color: white; padding: 12px 30px; border: none; border-radius: 8px;
+            font-weight: 600; cursor: pointer; transition: 0.3s;
+        }
+        .btn-danger:hover { background: #ff7875; box-shadow: 0 0 15px rgba(255, 77, 79, 0.4); }
+
+        footer { background: rgba(0,0,0,0.8); padding: 20px; text-align: center; font-size: 13px; color: rgba(255,255,255,0.5); }
+
+        @keyframes blink { 0% { opacity: 0.2; } 50% { opacity: 1; } 100% { opacity: 0.2; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Laser Dot Style */
+        #laser-dot {
+            position: absolute;
+            width: 16px; height: 16px;
+            background: radial-gradient(circle, #ff0000 30%, transparent 70%);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 0 15px 5px rgba(255, 0, 0, 0.8);
+            display: none;
+        }
+    </style>
 </head>
-
 <body>
 
-  <!-- Navbar -->
+     <!-- Navbar -->
   <nav>
     <div class="logo">
       <img src="/images/logo1.png" class="logo-img">
     </div>
-
     <div class="menu-icon" id="menu-icon">
       <div></div><div></div><div></div>
     </div>
-
     <ul id="nav-links">
       <li><a href="/">Home</a></li>
       <li><a href="/signin">Sign In</a></li>
@@ -165,176 +233,214 @@ footer {
       <li><a href="/join-session">Join Session</a></li>
       <li><a href="/view-sessions">View Sessions</a></li>
       <li><a href="/reports">Reports</a></li>
+      <li><a href="/settings" class="nav-settings">Settings</a></li>
       <li><a href="#" id="logoutBtn">Logout</a></li>
     </ul>
   </nav>
+    <div class="dashboard-wrapper">
+        <div class="container">
+            <h1><i class="fas fa-broadcast-tower"></i> Host Control Center</h1>
 
-  <!-- Main Container -->
-  <div class="container">
-    <h1>Start a Smart Session</h1>
+            <div class="setup-box" id="setupFormArea">
+                <form id="createSessionForm">
+                    <input type="text" id="sessionName" placeholder="Enter Session Title (e.g. Design Review)" required>
+                    <button type="submit" class="btn-main">Initialize & Share Screen</button>
+                </form>
+            </div>
 
-    <form id="createSessionForm">
-      <input type="text" id="sessionName" placeholder="Enter Session Title" required>
-      <button type="submit">Generate Session</button>
-    </form>
+            <div id="sessionCodeBox">
+                <p style="margin: 0; opacity: 0.7;">SESSION CODE</p>
+                <div id="sessionCode">------</div>
+                <p style="font-size: 12px; margin-top: 10px;">Viewer is authorized to interact with this session.</p>
+            </div>
 
-    <div id="sessionCodeBox">
-      <h3>Your Session Code:</h3>
-      <p id="sessionCode" style="font-size:24px; color:#00ffcc; font-weight:bold;"></p>
-      <p>Share this code to allow others to join.</p>
+            <div id="host-monitor">
+                <div class="status-badge">
+                    <div class="pulse-dot"></div> <span id="status-text">SYSTEM STANDBY</span>
+                </div>
+                <video id="localVideo" autoplay playsinline muted></video>
+                <div id="laser-dot"></div>
+            </div>
+
+            <div class="action-area" id="activeActions" style="display: none;">
+                <button id="endSessionBtn" class="btn-danger"><i class="fas fa-power-off"></i> Terminate Session</button>
+            </div>
+        </div>
     </div>
 
-    <video id="localVideo" autoplay playsinline muted></video>
-      <!-- End Session Button -->
-<button id="endSessionBtn" class="btn btn-danger">End Session</button>
+    <footer>© 2025 SmartSession Technologies | Secure Remote Collaboration Portal</footer>
 
-  </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/signaling.js"></script>
 
+    <script>
+        const socket = io();
+        // let localStream = null;
+        // let currentSessionCode = null;
 
+        // --- 1. Create Session & Start Screen Share ---
+        document.getElementById("createSessionForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const sessionName = document.getElementById("sessionName").value;
 
-  <footer>
-    <p>© 2025 SmartSession | All Rights Reserved</p>
-  </footer>
+            try {
+                // Production Grade Screen Capture
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { cursor: "always", displaySurface: "monitor" },
+                    audio: true
+                });
 
-  <!-- Scripts -->
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/signaling.js"></script>
+                localStream = stream;
+                window.localStream = stream; // For signaling.js access
+                document.getElementById("localVideo").srcObject = stream;
 
-<script>
-/* ---------------------------
-   CREATE SESSION BUTTON
-----------------------------*/
-document.getElementById("createSessionForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+                // API Call
+                const res = await fetch("/api/create-session", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ sessionName })
+                });
 
-  const res = await fetch("/api/create-session", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      sessionName: document.getElementById("sessionName").value
-    })
-  });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
 
-  const data = await res.json();
+                // UI Updates
+                currentSessionCode = data.sessionCode;
+                document.getElementById("setupFormArea").style.display = "none";
+                document.getElementById("sessionCodeBox").style.display = "block";
+                document.getElementById("sessionCode").innerText = data.sessionCode;
+                document.getElementById("activeActions").style.display = "flex";
+                document.getElementById("status-text").innerText = "LIVE BROADCASTING";
 
-  if (!data.success) return alert("Error: " + data.message);
+                // Initialize Signaling Room
+                if(window.createRoom) window.createRoom(data.sessionCode);
 
-  document.getElementById("sessionCodeBox").style.display = "block";
-  document.getElementById("sessionCode").innerText = data.sessionCode;
+                // Handle manual "Stop Sharing" from browser bar
+                stream.getVideoTracks()[0].onended = () => terminateSession();
 
-  window.createRoom(data.sessionCode);
-});
+            } catch (err) {
+                console.error("Session Start Error:", err);
+                alert("Could not start session: " + err.message);
+            }
+        });
 
+        // --- 2. Remote Control Listeners ---
+        socket.on("host-receive-control", ({ type, data }) => {
+            console.log(`Incoming Command: ${type}`, data);
 
+            switch(type) {
+                case "pointer-move":
+                    updateLaserPosition(data.x, data.y);
+                    break;
 
-/* ---------------------------
-   NAV MENU
-----------------------------*/
-const menuIcon = document.getElementById("menu-icon");
-const navLinks = document.getElementById("nav-links");
+                case "text-data":
+                    handleIncomingText(data.text);
+                    break;
 
-menuIcon.addEventListener("click", () => {
-  navLinks.classList.toggle("active");
-  menuIcon.classList.toggle("active");
-});
+                case "file-transfer":
+                    handleFileDownload(data);
+                    break;
 
-/* ---------------------------
-   LOGOUT
-----------------------------*/
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  const res = await fetch("/api/logout", { method: "POST" });
-  const data = await res.json();
-  alert(data.message);
-  window.location.href = "/";
-});
-const endSessionBtn = document.getElementById("endSessionBtn");
-const socket = io(); // connect to server
+                case "mouse-click":
+                    // Production note: Real mouse control requires server-side robotjs
+                    console.log("Viewer requested click at current position");
+                    break;
+            }
+        });
 
-// End Session Button Click
-endSessionBtn.addEventListener("click", () => {
-    if (confirm("Are you sure you want to end the session?")) {
+        // --- 3. Functional Features Implementation ---
 
-        // 1️⃣ Stop local screen stream
-        if (localStream) {
-            localStream.getTracks().forEach(track => track.stop());
+        function updateLaserPosition(xRatio, yRatio) {
+            const monitor = document.getElementById("host-monitor");
+            const dot = document.getElementById("laser-dot");
+            const rect = monitor.getBoundingClientRect();
+
+            // Calculate position relative to the video container
+            const posX = xRatio * rect.width;
+            const posY = yRatio * rect.height;
+
+            dot.style.display = "block";
+            dot.style.left = `${posX}px`;
+            dot.style.top = `${posY}px`;
+
+            // Auto-hide after inactivity
+            clearTimeout(window.laserTimer);
+            window.laserTimer = setTimeout(() => {
+                dot.style.display = "none";
+            }, 2000);
         }
 
-        // 2️⃣ Notify server that session ended
-        socket.emit("endSession", { sessionCode }); // optional: send session code
+        function handleIncomingText(text) {
+            if (!text) return;
+            // Copy to clipboard for host convenience
+            navigator.clipboard.writeText(text).then(() => {
+                alert(`Viewer Sent: "${text}"\n(Automatically copied to your clipboard)`);
+            }).catch(err => {
+                alert(`Viewer Sent: ${text}`);
+            });
+        }
 
-        // 3️⃣ Hide session UI
-        document.getElementById("sessionCodeBox").style.display = "none";
-        document.getElementById("localVideo").srcObject = null;
+        function handleFileDownload(fileData) {
+            try {
+                const blob = new Blob([fileData.blob], { type: fileData.fileType || 'application/octet-stream' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Viewer_File_${fileData.fileName}`;
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                    link.remove();
+                }, 200);
+            } catch (e) {
+                console.error("File Save Error:", e);
+            }
+        }
 
-        // 4️⃣ Redirect to home page after session ends
-        alert("Session has ended!");
+        // --- 4. Session Termination ---
+        async function terminateSession() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            
+            if (currentSessionCode) {
+                socket.emit("endSession", { sessionCode: currentSessionCode });
+            }
+
+            alert("Session terminated successfully.");
+            window.location.href = "/";
+        }
+
+        document.getElementById("endSessionBtn").addEventListener("click", () => {
+            if (confirm("Are you sure you want to kill the active session?")) {
+                terminateSession();
+            }
+        });
+
+        // Server forced end
+        socket.on("sessionEnded", () => {
+            alert("The session was closed by the server.");
+            window.location.href = "/";
+        });
+
+        // Logout
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+            await fetch("/api/logout", { method: "POST" });
+            window.location.href = "/";
+        });
+    // --- 8. Logout & Navbar ---
+    document.getElementById("logoutBtn").onclick = async () => {
+        await fetch("/api/logout", { method: "POST" });
         window.location.href = "/";
-    }
-});
+    };
 
-// Optional: Listen if server forcibly ends session for all participants
-socket.on("sessionEnded", () => {
-    alert("Host has ended the session!");
-    if (localStream) localStream.getTracks().forEach(track => track.stop());
-    document.getElementById("localVideo").srcObject = null;
-    window.location.href = "/";
-});
-
-
-// Listen for session ended from server
-socket.on("sessionEnded", () => {
-    alert("Session has been ended!");
-    // Optionally redirect user back to home page
-    window.location.href = "/";
-});
-socket.on("host-receive-control", ({ type, data }) => {
-    if (type === "pointer-move") {
-        // Ek chota red dot (div) create karein jo viewer ke mouse ke sath hile
-        showLaserOnScreen(data.x, data.y);
-    } 
-    else if (type === "text-data") {
-        // Text ko alert ya clipboard mein copy karwa dein
-        alert("Viewer Sent: " + data.text);
-        navigator.clipboard.writeText(data.text);
-    }
-});
-
-function showLaserOnScreen(xRatio, yRatio) {
-    let dot = document.getElementById("laser-dot");
-    if (!dot) {
-        dot = document.createElement("div");
-        dot.id = "laser-dot";
-        dot.style = "position:absolute; width:15px; height:15px; background:red; border-radius:50%; pointer-events:none; z-index:9999; box-shadow: 0 0 10px red;";
-        document.body.appendChild(dot);
-    }
-    // Screen size ke mutabiq position set karein
-    dot.style.left = (xRatio * window.innerWidth) + "px";
-    dot.style.top = (yRatio * window.innerHeight) + "px";
-    
-    // 2 second baad gayab ho jaye
-    setTimeout(() => dot.remove(), 2000);
-}
-// Host Side: Receive and Download File
-socket.on("host-receive-control", ({ type, data }) => {
-    if (type === "file-transfer") {
-        const blob = new Blob([data.blob], { type: data.fileType });
-        const url = window.URL.createObjectURL(blob);
-        
-        // Auto-download link create karna
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = data.fileName;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        a.remove();
-
-        showToast("📁 File Received: " + data.fileName);
-    }
-    // ... baqi logic (laser, text etc.)
-});
-
-</script>
-
+    const menuIcon = document.getElementById('menu-icon');
+    const navLinks = document.getElementById('nav-links');
+    menuIcon.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        menuIcon.classList.toggle('active');
+    });
+    </script>
 </body>
 </html>

@@ -1,29 +1,33 @@
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Settings - Session Management</title>
- <link rel="stylesheet" href="/style.css">
- <style> 
- 
- footer {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: rgba(0,0,0,0.7);
-      border-top: 1px solid rgba(255,255,255,0.2);
-      color: #fff;
-      text-align: center;
-      padding: 15px;
-      font-size: 14px;
-      z-index: 5;
-    }
-       /* ---------- NAVBAR ---------- */
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings | SmartSession</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #020617;
+            --nav-navy: #0f172a;
+            --accent-red: #be123c;
+            --hover-red: #9f1239;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --white: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+    /* ---------- NAVBAR ---------- */
     nav {
       position: fixed;
       top: 0;
@@ -38,12 +42,17 @@
       box-shadow: 0 0 15px rgba(0,255,255,0.3);
     }
 
-    nav .logo {
-      font-size: 24px;
-      font-weight: bold;
-      color: #101699;
-      text-shadow: 0 0 15px #00ffaa;
-    }
+.logo {
+  display: flex;
+  align-items: center; /* vertically center */
+  gap: 8px; /* text aur image ke beech spacing */
+}
+
+.logo-img {
+  height: 40px; /* apni requirement ke mutabiq adjust karein */
+  width: auto;
+}
+
 
     nav ul {
       list-style: none;
@@ -86,52 +95,374 @@
       border-radius: 2px;
       transition: 0.3s;
     }
- </style>
+   /* nav ul li a:hover, nav ul li a.active { color: var(--white); border-bottom: 2px solid var(--accent-red); } */
+
+        /* ---------- MAIN CONTENT ---------- */
+        .container {
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .settings-grid { display: grid; gap: 25px; }
+
+        .card {
+            background: var(--nav-navy);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 30px;
+            transition: transform 0.3s ease;
+        }
+
+        h1 { font-size: 32px; margin-bottom: 10px; }
+        h3 { color: var(--accent-red); font-size: 18px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
+        
+        input, select {
+            width: 100%;
+            padding: 14px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--accent-red); outline: none; box-shadow: 0 0 0 2px rgba(190, 18, 60, 0.2); }
+
+        .btn-save {
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-save:hover { background: var(--hover-red); transform: translateY(-2px); }
+        .btn-save:disabled { background: #475569; cursor: not-allowed; transform: none; }
+
+        /* Danger Zone */
+        .danger-zone { border: 1px solid #450a0a; background: rgba(69, 10, 10, 0.1); }
+        .btn-danger {
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-danger:hover { background: #ef4444; color: white; }
+
+        /* Animations */
+        .shake { animation: shake 0.4s ease-in-out; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        footer { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 13px; }
+
+          /* ---------- Responsive Styles ---------- */
+    @media (max-width: 900px) {
+      nav ul {
+        position: absolute;
+        top: 65px;
+        left: 0;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        flex-direction: column;
+        align-items: center;
+        max-height: 0;
+        overflow: hidden;
+      }
+
+      nav ul.active {
+        max-height: 500px;
+        padding: 10px 0;
+      }
+
+      nav ul li {
+        margin: 15px 0;
+      }
+
+      .menu-icon {
+        display: flex;
+        margin: 0px 40px 0px 0px;
+      }
+    }
+
+    /* --- Animation for menu open/close --- */
+    .menu-icon.active div:nth-child(1) {
+      transform: rotate(45deg) translateY(8px);
+    }
+    .menu-icon.active div:nth-child(2) {
+      opacity: 0;
+    }
+    .menu-icon.active div:nth-child(3) {
+      transform: rotate(-45deg) translateY(-8px);
+    }
+    /* Table slider for small screens */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Table minimum width so columns don't break */
+table {
+  min-width: 700px;
+}
+
+/* Smooth scrollbar (optional, looks premium) */
+.table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: #00ffcc;
+  border-radius: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.1);
+}
+    </style>
+</head>
 <body>
-  <header>
-    <h1>Session Management</h1>
-     <nav>
-    <div class="logo">SmartSession</div>
-    <ul>
+
+    <!-- Navbar -->
+  <nav>
+<div class="logo">
+  <img src="/images/logo1.png" alt="SmartSession Logo" class="logo-img">
+</div> 
+    <div class="menu-icon" id="menu-icon">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+    <ul id="nav-links">
       <li><a href="/">Home</a></li>
+      <li><a href="/signin">Sign In</a></li>
       <li><a href="/create-session">Start Session</a></li>
+      <li><a href="/join-session">Join Session</a></li>
       <li><a href="/view-sessions">View Sessions</a></li>
       <li><a href="/reports">Reports</a></li>
-      <li><a href="/signin">Sign In</a></li>
-            <li><a href="/join-session">Join Session</a></li>
+      <li><a href="/settings" class="nav-settings">Settings</a></li>
 
       <li><a href="#" id="logoutBtn">Logout</a></li>
     </ul>
   </nav>
-  </header>
 
-  <main>
-    <h2>Settings</h2>
-    <form>
-      <label for="username">Change Username:</label>
-      <input type="text" id="username" name="username" placeholder="Enter new username">
+<div class="container">
+    <header style="margin-bottom: 40px;">
+        <h1>Settings</h1>
+        <p style="color: var(--text-muted);">Configure your account and security preferences.</p>
+    </header>
 
-      <br><br>
+    <div class="settings-grid">
+        <section class="card" id="profile-card">
+            <h3>User Profile</h3>
+            <form id="profileForm">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="username" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="userEmail" value="loading..." disabled>
+                </div>
+                <button type="submit" class="btn-save">Update Profile</button>
+            </form>
+        </section>
 
-      <label for="password">Change Password:</label>
-      <input type="password" id="password" name="password" placeholder="Enter new password">
+        <section class="card" id="security-card">
+            <h3>Security & Password</h3>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" id="currPass" placeholder="••••••••" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="newPass" placeholder="At least 8 characters" required>
+                </div>
+                <button type="submit" class="btn-save">Change Password</button>
+            </form>
+        </section>
 
-      <br><br>
+        <section class="card">
+            <h3>Session Preferences</h3>
+            <div class="form-group">
+                <label>Automatic Timeout</label>
+                <select id="timeoutPref">
+                    <option value="30">30 Minutes</option>
+                    <option value="60">1 Hour</option>
+                    <option value="240">4 Hours</option>
+                    <option value="0">Never</option>
+                </select>
+            </div>
+        </section>
 
-      <button type="submit">Save Settings</button>
-    </form>
-  </main>
+        <section class="card danger-zone">
+            <h3 style="color: #ef4444;">Danger Zone</h3>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">
+                Deleting your account will remove all sessions, reports, and face data permanently.
+            </p>
+            <button class="btn-danger" id="deleteAccBtn">Delete My Account</button>
+        </section>
+    </div>
+</div>
+
+<footer>
+    <p>© 2026 SmartSession Management | Secure Terminal Access</p>
+</footer>
+
 <script>
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    const res = await fetch('/api/logout', { method: 'POST' });
-    const data = await res.json();
-    alert(data.message);
-    window.location.href = '/create-session';
+    // --- Utility: Set Loading State ---
+    const setLoader = (btn, isLoading, originalText) => {
+        btn.disabled = isLoading;
+        btn.innerText = isLoading ? "Processing..." : originalText;
+    };
+
+    // --- Utility: Shake Effect ---
+    const shakeElement = (id) => {
+        const el = document.getElementById(id);
+        el.classList.add('shake');
+        setTimeout(() => el.classList.remove('shake'), 400);
+    };
+
+    // 1. Handle Profile Update
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        const username = document.getElementById('username').value;
+
+        setLoader(btn, true, "Update Profile");
+
+        try {
+            const res = await fetch('/api/user/update-profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert("✅ Profile updated successfully!");
+            } else {
+                shakeElement('profile-card');
+                alert("❌ Error: " + data.message);
+            }
+        } catch (err) {
+            alert("⚠️ Connection failed!");
+        } finally {
+            setLoader(btn, false, "Update Profile");
+        }
+    });
+
+    // 2. Handle Password Change
+    document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        const currentPassword = document.getElementById('currPass').value;
+        const newPassword = document.getElementById('newPass').value;
+
+        if(newPassword.length < 8) {
+            alert("New password must be 8+ characters");
+            return;
+        }
+
+        setLoader(btn, true, "Change Password");
+
+        try {
+            const res = await fetch('/api/user/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert("✅ Password changed successfully!");
+                e.target.reset();
+            } else {
+                shakeElement('security-card');
+                alert("❌ " + data.message);
+            }
+        } catch (err) {
+            alert("⚠️ Server error!");
+        } finally {
+            setLoader(btn, false, "Change Password");
+        }
+    });
+
+    // 3. Logout
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+        e.preventDefault();
+        if(confirm("Sign out of SmartSession?")) {
+            const res = await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/signin';
+        }
+    });
+
+    // 4. Delete Account
+    document.getElementById('deleteAccBtn').addEventListener('click', async () => {
+        const confirmStr = prompt("Type 'DELETE' to confirm account destruction:");
+        if(confirmStr === 'DELETE') {
+            try {
+                const res = await fetch('/api/user/delete-account', { method: 'DELETE' });
+                const data = await res.json();
+                if(data.success) window.location.href = '/signin';
+            } catch (err) {
+                alert("Delete failed.");
+            }
+        }
+    });
+// Page load hote hi user details fetch karein
+async function fetchUserDetails() {
+    try {
+        const response = await fetch('/api/user/me');
+        const data = await response.json();
+
+        if (data.success) {
+            // "loading..." ko asli data se replace karein
+            document.getElementById('username').value = data.name;
+            document.getElementById('userEmail').value = data.email;
+            
+            // Agar aapke pas navbar mein koi name display hota hai, usey bhi update karein
+            console.log("User data loaded successfully");
+        } else {
+            document.getElementById('userEmail').value = "Error loading email";
+        }
+    } catch (err) {
+        console.error("Fetch error:", err);
+        document.getElementById('userEmail').value = "Connection error";
+    }
+}
+
+// Browser ko batayein ke load hote hi function chalaye
+document.addEventListener('DOMContentLoaded', fetchUserDetails);
+
+  // Mobile Menu Toggle
+  const menuIcon = document.getElementById('menu-icon');
+  const navLinks = document.getElementById('nav-links');
+  menuIcon.addEventListener('click', () => {
+    navLinks.classList.toggle('active');
+    menuIcon.classList.toggle('active');
   });
+
 </script>
-   <!-- Footer -->
-  <footer>
-    <p>© 2025 SmartSession Management | All Rights Reserved</p>
-  </footer>
+
 </body>
 </html>

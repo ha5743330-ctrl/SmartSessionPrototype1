@@ -1,277 +1,487 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard - SmartSession</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSession | Enterprise Admin</title>
 
-  <!-- Bootstrap & Axios -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-  <style>
-    body {
-      background: #0f172a;
-      color: white;
-      font-family: 'Poppins', sans-serif;
-    }
-    .navbar {
-      background: #1e293b;
-    }
-    .container { margin-top: 30px; }
-    .card {
-      background: #1e293b;
-      border: none;
-      border-radius: 12px;
-      color: #e2e8f0;
-    }
-    button { border-radius: 6px; transition: 0.2s; }
-    button:hover { transform: scale(1.05); }
-    table th, table td { color: #f1f5f9; }
+    <style>
+        :root {
+            --bg-deep: #020617;
+            --card-dark: #0f172a;
+            --border-color: #1e293b;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
 
-    /* Vertical scroll for tables */
-    #usersSection, #reportsSection {
-      max-height: 400px;
-      overflow-y: auto;
-      padding-right: 10px;
-    }
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
 
-    /* Scrollbar styling */
-    #usersSection::-webkit-scrollbar,
-    #reportsSection::-webkit-scrollbar { width: 8px; }
-    #usersSection::-webkit-scrollbar-thumb,
-    #reportsSection::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-    #usersSection::-webkit-scrollbar-track,
-    #reportsSection::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
 
-    /* Table hover */
-    table tbody tr:hover { background: #334155; cursor: pointer; }
+        /* Sidebar & Layout */
+        .admin-wrapper { display: flex; min-height: 100vh; }
+        
+        .sidebar {
+            width: 280px;
+            background: var(--card-dark);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+        }
 
-    .blocked { background-color: #dc2626 !important; color: white; }
-    .unblocked { background-color: #16a34a !important; color: white; }
-  </style>
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 2rem;
+        }
+
+        /* UI Components */
+        .glass-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Tables */
+        .table-container {
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+            background: transparent !important;
+        }
+
+        .custom-table thead th {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 1px;
+            padding: 1rem;
+            border: none;
+        }
+
+        .custom-table tbody tr {
+            background-color: rgba(30, 41, 59, 0.5);
+            transition: transform 0.2s;
+        }
+
+        .custom-table tbody tr:hover {
+            background-color: rgba(30, 41, 59, 1);
+            transform: scale(1.005);
+        }
+
+        .custom-table td {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-active { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .status-blocked { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+        /* Search & Filters */
+        .search-box {
+            background: var(--bg-deep);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            width: 300px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        /* Loader */
+        .shimmer {
+            animation: shimmer 2s infinite linear;
+            background: linear-gradient(to right, #1e293b 4%, #334155 25%, #1e293b 36%);
+            background-size: 1000px 100%;
+        }
+
+        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+        
+        @media (max-width: 992px) {
+            .sidebar { transform: translateX(-100%); transition: 0.3s; z-index: 1000; }
+            .sidebar.active { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+        }
+    </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark px-4">
-  <span class="navbar-brand">⚙️ SmartSession Admin Dashboard</span>
-  <button class="btn btn-outline-danger" id="logoutBtn">Logout</button>
-</nav>
+<div class="admin-wrapper">
+    <aside class="sidebar">
+        <div class="d-flex align-items-center mb-5">
+            <div class="stat-icon bg-primary me-3 mb-0">
+                <i class="fas fa-shield-halved"></i>
+            </div>
+            <h4 class="mb-0 fw-bold">AdminPro</h4>
+        </div>
+        
+        <div class="nav flex-column gap-2">
+            <a href="#" class="nav-link text-white bg-primary rounded-3 p-3">
+                <i class="fas fa-chart-pie me-3"></i> Overview
+            </a>
+            <a href="#" class="nav-link text-muted p-3">
+                <i class="fas fa-users me-3"></i> User Directory
+            </a>
+            <a href="#" class="nav-link text-muted p-3">
+                <i class="fas fa-file-invoice me-3"></i> Audit Logs
+            </a>
+            <a href="#" class="nav-link text-muted p-3">
+                <i class="fas fa-cog me-3"></i> System Settings
+            </a>
+            <hr class="text-muted my-4">
+            <button class="btn btn-outline-danger w-100" id="logoutBtn">
+                <i class="fas fa-sign-out-alt me-2"></i> Terminate Session
+            </button>
+        </div>
+    </aside>
 
-<div class="container">
+    <main class="main-content">
+        <header class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="fw-bold mb-1">Infrastructure Control</h2>
+                <p class="text-muted">Real-time system monitoring and user governance.</p>
+            </div>
+            <div class="d-flex gap-3">
+                <input type="text" id="globalSearch" class="search-box" placeholder="Search users, emails, roles...">
+                <button class="btn btn-primary px-4" id="refreshAll">
+                    <i class="fas fa-sync-alt me-2"></i> Sync
+                </button>
+            </div>
+        </header>
 
-  <!-- Dashboard Controls -->
-  <div class="row text-center mb-4">
-    <div class="col">
-      <h2>👨‍💼 Manage Users</h2>
-      <button class="btn btn-primary" id="loadUsersBtn">Load Users</button>
-    </div>
-    <div class="col">
-      <h2>📋 View Reports</h2>
-      <button class="btn btn-success" id="loadReportsBtn">Load Reports</button>
-    </div>
-  </div>
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="glass-card">
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="fas fa-user-group"></i>
+                    </div>
+                    <p class="text-muted small fw-bold mb-1">TOTAL USERS</p>
+                    <h3 class="fw-bold" id="stat-total-users">0</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card border-success">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <p class="text-muted small fw-bold mb-1">ACTIVE ACCOUNTS</p>
+                    <h3 class="fw-bold" id="stat-active-users">0</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card border-danger">
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                        <i class="fas fa-user-slash"></i>
+                    </div>
+                    <p class="text-muted small fw-bold mb-1">RESTRICTED</p>
+                    <h3 class="fw-bold" id="stat-blocked-users">0</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card">
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <p class="text-muted small fw-bold mb-1">SYSTEM UPTIME</p>
+                    <h3 class="fw-bold">99.9%</h3>
+                </div>
+            </div>
+        </div>
 
-  <!-- Users Table -->
-  <div id="usersSection" class="mt-4 card p-3">
-    <h4 class="text-info">Registered Users</h4>
-    <table class="table table-striped table-hover mt-3">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Role</th>
-          <th>Status</th>
-          <th>Last Updated</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="usersTable"></tbody>
-    </table>
-    <div class="text-center mt-2">
-      <button class="btn btn-secondary btn-sm" id="toggleUsersBtn">Show More</button>
-    </div>
-  </div>
+        <div class="glass-card mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0">User Registry</h4>
+                <div class="btn-group">
+                    <button class="btn btn-outline-secondary btn-sm active" onclick="filterData('all')">All</button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="filterData('admin')">Admins</button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="filterData('user')">Members</button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>IDENTIFIER</th>
+                            <th>ROLE</th>
+                            <th>LATEST ACTIVITY</th>
+                            <th>STATUS</th>
+                            <th class="text-end">OPERATIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersMasterTable">
+                        </tbody>
+                </table>
+            </div>
+        </div>
 
-  <!-- Reports Table -->
-  <div id="reportsSection" class="mt-5 card p-3">
-    <h4 class="text-warning">System Reports</h4>
-    <table class="table table-striped table-hover mt-3">
-      <thead>
-        <tr>
-          <th>User</th>
-          <th>Email</th>
-          <th>Action</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody id="reportsTable"></tbody>
-    </table>
-    <div class="text-center mt-2">
-      <button class="btn btn-secondary btn-sm" id="toggleReportsBtn">Show More</button>
-    </div>
-  </div>
-
+        <div class="row">
+            <div class="col-12">
+                <div class="glass-card">
+                    <h4 class="fw-bold mb-4">System Audit Trail</h4>
+                    <div id="auditLog" class="list-group list-group-flush bg-transparent">
+                        </div>
+                </div>
+            </div>
+        </div>
+    </main>
 </div>
 
 <script>
-const apiBase = window.location.origin;
-let usersData = [], reportsData = [];
-let usersShowAll = false, reportsShowAll = false;
+    const apiBase = window.location.origin;
+    let globalUsers = [];
+    let auditLogs = [];
 
-// ===========================
-// USERS
-// ===========================
-async function loadUsers() {
-  try {
-    const res = await axios.get(`${apiBase}/api/admin/users`);
-    usersData = res.data;
-    usersShowAll = false;
-    renderUsers();
-  } catch (err) { console.error(err); alert('Failed to load users.'); }
-}
-
-function renderUsers() {
-  const table = document.getElementById('usersTable');
-  table.innerHTML = '';
-
-  const rows = usersShowAll ? usersData : usersData.slice(0, 5);
-
-  rows.forEach(u => {
-    const isBlocked = u.blocked;
-    const tr = document.createElement('tr');
-    tr.className = isBlocked ? 'blocked' : 'unblocked';
-    tr.innerHTML = `
-      <td>${u.name}</td>
-      <td>${u.email}</td>
-      <td>${u.role}</td>
-      <td>${isBlocked ? 'Blocked' : 'Active'}</td>
-      <td>${new Date(u.updatedAt).toLocaleString()}</td>
-      <td>
-        ${isBlocked 
-          ? `<button class="btn btn-success btn-sm" onclick="unblockUser('${u._id}')">Unblock</button>`
-          : `<button class="btn btn-warning btn-sm" onclick="blockUser('${u._id}')">Block</button>`}
-        <button class="btn btn-danger btn-sm" onclick="deleteUser('${u._id}')">Delete</button>
-      </td>
-    `;
-    table.appendChild(tr);
-  });
-
-  const btn = document.getElementById('toggleUsersBtn');
-  if(usersData.length <=5) btn.style.display='none';
-  else { btn.style.display='inline-block'; btn.innerText = usersShowAll ? 'Show Less' : 'Show More'; }
-}
-
-// Toggle Users
-document.getElementById('toggleUsersBtn').addEventListener('click', () => {
-  usersShowAll = !usersShowAll;
-  renderUsers();
-});
-
-// ===========================
-// REPORTS
-// ===========================
-async function loadReports() {
-  try {
-    const res = await axios.get(`${apiBase}/api/reports`);
-    reportsData = res.data;
-    reportsShowAll = false;
-    renderReports();
-  } catch (err) { console.error(err); alert('Failed to load reports.'); }
-}
-
-function renderReports() {
-  const table = document.getElementById('reportsTable');
-  table.innerHTML = '';
-
-  const rows = reportsShowAll ? reportsData : reportsData.slice(0,5);
-
-  rows.forEach(r => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${r.user?.name || 'Unknown'}</td>
-      <td>${r.user?.email || 'N/A'}</td>
-      <td>${r.action}</td>
-      <td>${new Date(r.createdAt).toLocaleString()}</td>
-    `;
-    table.appendChild(tr);
-  });
-
-  const btn = document.getElementById('toggleReportsBtn');
-  if(reportsData.length <=5) btn.style.display='none';
-  else { btn.style.display='inline-block'; btn.innerText = reportsShowAll ? 'Show Less' : 'Show More'; }
-}
-
-// Toggle Reports
-document.getElementById('toggleReportsBtn').addEventListener('click', () => {
-  reportsShowAll = !reportsShowAll;
-  renderReports();
-});
-
-// ===========================
-// BLOCK / UNBLOCK / DELETE
-// ===========================
-async function blockUser(id) {
-  if(!confirm('Block this user?')) return;
-  try { await axios.put(`${apiBase}/api/admin/block-user/${id}`); loadUsers(); } 
-  catch(err){ console.error(err); alert('Failed to block user'); }
-}
-
-async function unblockUser(id) {
-  if(!confirm('Unblock this user?')) return;
-  try {
-    const res = await axios.put(`${apiBase}/api/admin/unblock-user/${id}`);
-    console.log(res.data); // debugging
-    alert('User unblocked successfully!');
-    loadUsers(); // refresh table
-  } catch (err) {
-    console.error(err.response?.data || err);
-    alert('Failed to unblock user.');
-  }
-}
-
-
-async function deleteUser(id) {
-  if(!confirm('Delete this user?')) return;
-  try { await axios.delete(`${apiBase}/api/admin/delete-user/${id}`); loadUsers(); } 
-  catch(err){ console.error(err); alert('Failed to delete user'); }
-      // Prevent admin deletion
-    if (user.role === "admin") {
-      return res.status(403).json({ success: false, message: "Admin cannot be deleted" });
+    /**
+     * CORE INITIALIZATION
+     */
+    async function initializeDashboard() {
+        console.log("⚡ System Core Initializing...");
+        await fetchMasterData();
+        setupEventListeners();
     }
 
-}
+    /**
+     * DATA FETCHING ENGINE
+     */
+    async function fetchMasterData() {
+        showTableLoading(true);
+        try {
+            const [userRes, reportRes] = await Promise.all([
+                axios.get(`${apiBase}/api/admin/users`),
+                axios.get(`${apiBase}/api/reports`)
+            ]);
 
-// ===========================
-// LOGOUT
-// ===========================
-document.getElementById('logoutBtn').addEventListener('click', async () => {
-  try { await axios.post(`${apiBase}/api/logout`); window.location.href='/signin'; } 
-  catch(err){ console.error(err); }
-});
+            globalUsers = userRes.data;
+            auditLogs = reportRes.data;
 
-// ===========================
-// INITIAL LOAD
-// ===========================
-document.getElementById('loadUsersBtn').addEventListener('click', loadUsers);
-document.getElementById('loadReportsBtn').addEventListener('click', loadReports);
+            renderStatistics();
+            renderUsers(globalUsers);
+            renderAuditLogs();
+        } catch (err) {
+            triggerNotification('Critical System Error: Database Sync Failed', 'error');
+            console.error(err);
+        } finally {
+            showTableLoading(false);
+        }
+    }
 
-const isAdminUser = u.role === 'admin';
-tr.innerHTML = `
-  <td>${u.name}</td>
-  <td>${u.email}</td>
-  <td>${u.role}</td>
-  <td>${u.blocked ? 'Blocked' : 'Active'}</td>
-  <td>${new Date(u.updatedAt).toLocaleString()}</td>
-  <td>
-    ${isAdminUser ? '' : u.blocked 
-      ? `<button class="btn btn-success btn-sm" onclick="unblockUser('${u._id}')">Unblock</button>`
-      : `<button class="btn btn-warning btn-sm" onclick="blockUser('${u._id}')">Block</button>`}
-    ${isAdminUser ? '' : `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u._id}')">Delete</button>`}
-  </td>
-`;
+    /**
+     * UI RENDERING ENGINE
+     */
+    function renderStatistics() {
+        document.getElementById('stat-total-users').innerText = globalUsers.length;
+        document.getElementById('stat-active-users').innerText = globalUsers.filter(u => !u.blocked).length;
+        document.getElementById('stat-blocked-users').innerText = globalUsers.filter(u => u.blocked).length;
+    }
 
+    function renderUsers(data) {
+        const tableBody = document.getElementById('usersMasterTable');
+        tableBody.innerHTML = '';
+
+        if (data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted">No records matching your search criteria.</td></tr>';
+            return;
+        }
+
+        data.forEach(user => {
+            const isAdmin = user.role === 'admin';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" style="width: 35px; height: 35px; font-size: 12px;">
+                            ${user.name.charAt(0)}
+                        </div>
+                        <div>
+                            <div class="fw-bold">${user.name}</div>
+                            <div class="text-muted x-small" style="font-size: 11px;">${user.email}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge ${isAdmin ? 'bg-primary' : 'bg-dark'} border border-secondary">${user.role.toUpperCase()}</span>
+                </td>
+                <td class="text-muted small">
+                    ${new Date(user.updatedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                </td>
+                <td>
+                    <span class="status-badge ${user.blocked ? 'status-blocked' : 'status-active'}">
+                        ${user.blocked ? 'RESTRICTED' : 'OPERATIONAL'}
+                    </span>
+                </td>
+                <td class="text-end">
+                    ${isAdmin ? '<i class="fas fa-lock text-muted mx-3" title="System Root"></i>' : `
+                        <div class="btn-group gap-2">
+                            <button class="btn btn-outline-${user.blocked ? 'success' : 'warning'} btn-sm px-3" 
+                                onclick="${user.blocked ? 'handleUnblock' : 'handleBlock'}('${user._id}')">
+                                <i class="fas ${user.blocked ? 'fa-user-check' : 'fa-user-slash'}"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm px-3" onclick="handleDelete('${user._id}')">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    `}
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    function renderAuditLogs() {
+        const logContainer = document.getElementById('auditLog');
+        logContainer.innerHTML = '';
+
+        auditLogs.slice(0, 8).forEach(log => {
+            const div = document.createElement('div');
+            div.className = 'list-group-item bg-transparent border-0 px-0 mb-3';
+            div.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <div class="d-flex gap-3">
+                        <div class="stat-icon bg-dark border border-secondary rounded-circle" style="width:35px; height:35px; font-size: 12px; margin:0">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div>
+                            <p class="mb-0 fw-bold small">${log.user?.name || 'System'}: <span class="text-info fw-normal">${log.action}</span></p>
+                            <small class="text-muted" style="font-size: 10px;">${new Date(log.createdAt).toLocaleString()}</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-dark text-muted">LOG_ID: ${log._id.substr(-6)}</span>
+                </div>
+            `;
+            logContainer.appendChild(div);
+        });
+    }
+
+    /**
+     * ACTIONS ENGINE
+     */
+    async function handleBlock(id) {
+        if(!confirm('Restricting this user will terminate their active sessions. Proceed?')) return;
+        try {
+            await axios.put(`${apiBase}/api/admin/block-user/${id}`);
+            await fetchMasterData();
+            triggerNotification('Protocol Executed: User Restricted', 'success');
+        } catch(err) { triggerNotification('Authorization Failure', 'error'); }
+    }
+
+    async function handleUnblock(id) {
+        try {
+            await axios.put(`${apiBase}/api/admin/unblock-user/${id}`);
+            await fetchMasterData();
+            triggerNotification('User restored to operational status', 'success');
+        } catch(err) { triggerNotification('Server override failed', 'error'); }
+    }
+
+    async function handleDelete(id) {
+        const u = globalUsers.find(x => x._id === id);
+        if(u.role === 'admin') return;
+        
+        if(!confirm(`PERMANENT DELETION: Are you sure you want to scrub ${u.name} from the database?`)) return;
+        
+        try {
+            await axios.delete(`${apiBase}/api/admin/delete-user/${id}`);
+            await fetchMasterData();
+            triggerNotification('User account scrubbed successfully', 'success');
+        } catch(err) { triggerNotification('Deletion protocol failed', 'error'); }
+    }
+
+    /**
+     * UTILITIES & LISTENERS
+     */
+    function setupEventListeners() {
+        // Search Filter
+        document.getElementById('globalSearch').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = globalUsers.filter(u => 
+                u.name.toLowerCase().includes(term) || 
+                u.email.toLowerCase().includes(term) ||
+                u.role.toLowerCase().includes(term)
+            );
+            renderUsers(filtered);
+        });
+
+        // Sync Button
+        document.getElementById('refreshAll').addEventListener('click', fetchMasterData);
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await axios.post(`${apiBase}/api/logout`);
+            window.location.href = '/signin';
+        });
+    }
+
+    function triggerNotification(msg, type) {
+        // Professional Alert System
+        const toast = document.createElement('div');
+        toast.className = `position-fixed bottom-0 end-0 m-4 p-3 rounded-3 shadow text-white ${type === 'success' ? 'bg-success' : 'bg-danger'}`;
+        toast.style.zIndex = "9999";
+        toast.innerHTML = `<i class="fas fa-info-circle me-2"></i> ${msg}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+
+    function showTableLoading(status) {
+        const table = document.getElementById('usersMasterTable');
+        if(status) {
+            table.innerHTML = '<tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>';
+        }
+    }
+
+    // Startup
+    initializeDashboard();
 </script>
+
 </body>
 </html>
