@@ -190,13 +190,43 @@
       nav ul li a:hover, nav ul li a.active { color: var(--white); border-bottom: 2px solid var(--accent-red); }
         /* --- Controls --- */
         .action-area { margin-top: 25px; display: flex; justify-content: center; gap: 15px; }
-        .btn-danger {
-            background: var(--danger-red);
-            color: white; padding: 12px 30px; border: none; border-radius: 8px;
-            font-weight: 600; cursor: pointer; transition: 0.3s;
-        }
-        .btn-danger:hover { background: #ff7875; box-shadow: 0 0 15px rgba(255, 77, 79, 0.4); }
+.btn.anydesk-btn {
+  position: relative;
+  padding: 14px 40px;
+  font-size: 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #ffffff;
+  background: #e21e14; /* AnyDesk signature red */
+  border: none;
+  display: inline-block;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.2s ease;
+}
 
+.btn.anydesk-btn:hover {
+  background: #aa0900; /* thoda darker on hover */
+}
+
+.btn.anydesk-btn::before {
+  content: "";
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  width: 180px;
+  height: 180px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgb(86, 207, 6), transparent 60%);
+  opacity: 0;
+  border-radius: 50%;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+
+.btn.anydesk-btn:hover::before {
+  opacity: 0.6;
+}
         footer { background: rgba(0,0,0,0.8); padding: 20px; text-align: center; font-size: 13px; color: rgba(255,255,255,0.5); }
 
         @keyframes blink { 0% { opacity: 0.2; } 50% { opacity: 1; } 100% { opacity: 0.2; } }
@@ -214,6 +244,15 @@
             box-shadow: 0 0 15px 5px rgba(255, 0, 0, 0.8);
             display: none;
         }
+                #tsparticles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* BACKGROUND */
+    pointer-events: none; /* content clickable rahe */
+}
     </style>
 </head>
 <body>
@@ -244,7 +283,7 @@
             <div class="setup-box" id="setupFormArea">
                 <form id="createSessionForm">
                     <input type="text" id="sessionName" placeholder="Enter Session Title (e.g. Design Review)" required>
-                    <button type="submit" class="btn-main">Initialize & Share Screen</button>
+                    <button type="submit" class="btn anydesk-btn">Initialize & Share Screen</button>
                 </form>
             </div>
 
@@ -273,7 +312,20 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/signaling.js"></script>
 
-    <script>
+<script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+
+<script>
+    // tsparticles
+  tsParticles.load("tsparticles", {
+    background: { color: "#02022A" },
+    particles: {
+      number: { value: 10 },
+      size: { value: 80 },
+      opacity: { value: 0.15 },
+      shape: { type: "circle" },
+      move: { enable: false }
+    }
+  });
         const socket = io();
         // let localStream = null;
         // let currentSessionCode = null;
@@ -398,42 +450,83 @@
             }
         }
 
-        // --- 4. Session Termination ---
-        async function terminateSession() {
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-            }
+// --- 4. Session Termination (Modified) ---
+async function terminateSession() {
+    // 1. Camera/Mic band karein
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+    }
+
+    // 2. Database mein session ko Inactive karein (ZAROORI)
+    if (currentSessionCode) {
+        try {
+            await fetch('/api/end-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionCode: currentSessionCode })
+            });
             
-            if (currentSessionCode) {
-                socket.emit("endSession", { sessionCode: currentSessionCode });
-            }
-
-            alert("Session terminated successfully.");
-            window.location.href = "/";
+            // 3. Socket ko inform karein (Real-time update ke liye)
+            socket.emit("endSession", { sessionCode: currentSessionCode });
+            
+        } catch (err) {
+            console.error("Database update failed:", err);
         }
+    }
 
-        document.getElementById("endSessionBtn").addEventListener("click", () => {
-            if (confirm("Are you sure you want to kill the active session?")) {
-                terminateSession();
-            }
-        });
+    alert("Session terminated and database updated.");
+    window.location.href = "/";
+}
 
+document.getElementById("endSessionBtn").addEventListener("click", () => {
+    if (confirm("Are you sure you want to kill the active session? This will remove it from Admin Dashboard.")) {
+        terminateSession();
+    }
+});
         // Server forced end
         socket.on("sessionEnded", () => {
             alert("The session was closed by the server.");
             window.location.href = "/";
         });
 
-        // Logout
-        document.getElementById("logoutBtn").addEventListener("click", async () => {
-            await fetch("/api/logout", { method: "POST" });
-            window.location.href = "/";
-        });
-    // --- 8. Logout & Navbar ---
-    document.getElementById("logoutBtn").onclick = async () => {
-        await fetch("/api/logout", { method: "POST" });
-        window.location.href = "/";
-    };
+          // btn hover effect
+  document.querySelectorAll(".btn.anydesk-btn").forEach(btn => {
+    btn.addEventListener("mousemove", (e) => {
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      btn.style.setProperty("--x", x + "px");
+      btn.style.setProperty("--y", y + "px");
+    });
+    btn.addEventListener("mouseleave", () => {
+      btn.style.setProperty("--x", "50%");
+      btn.style.setProperty("--y", "50%");
+    });
+  });
+// --- 8. Logout & Navbar ---
+document.getElementById("logoutBtn").onclick = async () => {
+    // Confirmation Dialog
+    const confirmLogout = confirm("Are you sure you want to log out? Any unsaved progress might be lost.");
+
+    if (confirmLogout) {
+        try {
+            const response = await fetch("/api/logout", { method: "POST" });
+            
+            if (response.ok) {
+                // Logout successful
+                window.location.href = "/";
+            } else {
+                alert("Logout failed. Please try again.");
+            }
+        } catch (error) {
+            console.error("Logout Error:", error);
+            alert("Connection error. Could not log out.");
+        }
+    } else {
+        // Agar user 'Cancel' click kare
+        console.log("Logout cancelled by user.");
+    }
+};
 
     const menuIcon = document.getElementById('menu-icon');
     const navLinks = document.getElementById('nav-links');
@@ -441,6 +534,13 @@
         navLinks.classList.toggle('active');
         menuIcon.classList.toggle('active');
     });
+    // Agar user tab band kare ya browser exit kare
+window.onbeforeunload = function() {
+    if (currentSessionCode) {
+        // Beacon API use karte hain jab tab close ho raha ho
+        navigator.sendBeacon('/api/end-session', JSON.stringify({ sessionCode: currentSessionCode }));
+    }
+};
     </script>
 </body>
 </html>

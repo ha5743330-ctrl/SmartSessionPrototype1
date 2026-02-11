@@ -10,11 +10,6 @@
   margin: 0;
   font-family: "Poppins", sans-serif;
   
-  /* Background image lagayein */
-  background-image: url('/images/background-img.jpg'); /* yahan apni image ka path */
-  background-size: cover;      /* poora page cover kare */
-  background-position: center; /* image center me align ho */
-  background-repeat: no-repeat;/* image repeat na ho */
 
   /* Optional gradient overlay */
   background-color: rgba(0,0,0,0.5); 
@@ -149,21 +144,45 @@
       color: #fff;
     }
 
-    button.submit {
-      background: linear-gradient(90deg,#e3e0e7, #ff0000);
-      color: #fff;
-      padding: 12px;
-      width: 100%;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: 0.3s;
-    }
+.btn.anydesk-btn {
+  position: relative;
+  padding: 14px 40px;
+  font-size: 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #ffffff;
+  background: #e21e14; /* AnyDesk signature red */
+  border: none;
+  display: block;          /* change from inline-block */
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.2s ease;
+  margin: 20px auto;       /* center button */
+}
 
-    button.submit:hover {
-      background: #0f2027;
-    }
+
+.btn.anydesk-btn:hover {
+  background: #aa0900; /* thoda darker on hover */
+}
+
+.btn.anydesk-btn::before {
+  content: "";
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  width: 180px;
+  height: 180px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgb(86, 207, 6), transparent 60%);
+  opacity: 0;
+  border-radius: 50%;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+
+.btn.anydesk-btn:hover::before {
+  opacity: 0.6;
+}
 
 
 
@@ -223,6 +242,16 @@
     }
     nav ul li a:hover, nav ul li a.active { color: var(--white); border-bottom: 2px solid var(--accent-red); }
 
+        #tsparticles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* BACKGROUND */
+    pointer-events: none; /* content clickable rahe */
+}
+
   </style>
 </head>
 
@@ -262,14 +291,14 @@
       <form id="loginForm">
         <input type="email" id="loginEmail" placeholder="Email" required>
         <input type="password" id="loginPassword" placeholder="Password" required>
-        <button type="submit" class="submit">Login</button>
+        <button type="submit" class="btn anydesk-btn">Login</button>
       </form>
 
       <form id="registerForm" style="display: none;">
         <input type="text" id="regName" placeholder="Full Name" required>
         <input type="email" id="regEmail" placeholder="Email" required>
         <input type="password" id="regPassword" placeholder="Password" required>
-        <button type="submit" class="submit">Create Account</button>
+        <button type="submit" class="btn anydesk-btn">Create Account</button>
       </form>
     </div>
     
@@ -279,8 +308,20 @@
   <footer>
     <p>© 2025 SmartSession Management | All Rights Reserved</p>
   </footer>
+<script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
 
 <script>
+    // tsparticles
+  tsParticles.load("tsparticles", {
+    background: { color: "#02022A" },
+    particles: {
+      number: { value: 10 },
+      size: { value: 80 },
+      opacity: { value: 0.15 },
+      shape: { type: "circle" },
+      move: { enable: false }
+    }
+  });
   // --- Mobile Menu Toggle ---
   const menuIcon = document.getElementById('menu-icon');
   const navLinks = document.getElementById('nav-links');
@@ -320,35 +361,83 @@
       window.location.href = data.redirect; // → /face-auth
     }
   });
-
-  // ✅ LOGIN (ALREADY CORRECT)
-  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  // btn hover effect
+  document.querySelectorAll(".btn.anydesk-btn").forEach(btn => {
+    btn.addEventListener("mousemove", (e) => {
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      btn.style.setProperty("--x", x + "px");
+      btn.style.setProperty("--y", y + "px");
+    });
+    btn.addEventListener("mouseleave", () => {
+      btn.style.setProperty("--x", "50%");
+      btn.style.setProperty("--y", "50%");
+    });
+  });
+// ✅ LOGIN (MODIFIED FOR ROLE-BASED ALERTS)
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: loginEmail.value,
-        password: loginPassword.value
-      })
-    });
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: loginEmail.value,
+                password: loginPassword.value
+            })
+        });
 
-    const data = await res.json();
-    alert(data.message || "Login successful");
+        const data = await res.json();
 
-    if (data.success && data.redirect) {
-      window.location.href = data.redirect;
+        if (data.success) {
+            // Check karein ke redirect path kya hai ya user role kya hai
+            if (data.redirect === '/admin-dashboard') {
+                alert("🛡️ Admin Login Successful! Welcome to Control Panel.");
+            } else {
+                alert("👤 Login Successful! Please verify your face to proceed.");
+            }
+
+            // Thora sa delay taake user alert parh sakay
+            setTimeout(() => {
+                window.location.href = data.redirect;
+            }, 500);
+            
+        } else {
+            alert(data.message || "Invalid credentials");
+        }
+    } catch (err) {
+        console.error("Login Error:", err);
+        alert("System connection error. Please try again later.");
     }
-  });
+});
+  
+  
+// --- 8. Logout & Navbar ---
+document.getElementById("logoutBtn").onclick = async () => {
+    // Confirmation Dialog
+    const confirmLogout = confirm("Are you sure you want to log out? Any unsaved progress might be lost.");
 
-  // Logout
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    const res = await fetch('/api/logout', { method: 'POST' });
-    const data = await res.json();
-    alert(data.message);
-    window.location.href = '/signin';
-  });
+    if (confirmLogout) {
+        try {
+            const response = await fetch("/api/logout", { method: "POST" });
+            
+            if (response.ok) {
+                // Logout successful
+                window.location.href = "/";
+            } else {
+                alert("Logout failed. Please try again.");
+            }
+        } catch (error) {
+            console.error("Logout Error:", error);
+            alert("Connection error. Could not log out.");
+        }
+    } else {
+        // Agar user 'Cancel' click kare
+        console.log("Logout cancelled by user.");
+    }
+};
 </script>
 
 

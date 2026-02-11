@@ -134,35 +134,7 @@
 
         input:focus { border-color: var(--accent-red); outline: none; box-shadow: 0 0 0 2px rgba(190, 18, 60, 0.2); }
 
-        .btn-save {
-            background: var(--accent-red);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .btn-save:hover { background: var(--hover-red); transform: translateY(-2px); }
-        .btn-save:disabled { background: #475569; cursor: not-allowed; transform: none; }
-
-        /* Danger Zone */
-        .danger-zone { border: 1px solid #450a0a; background: rgba(69, 10, 10, 0.1); }
-        .btn-danger {
-            background: transparent;
-            color: #ef4444;
-            border: 1px solid #ef4444;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-        .btn-danger:hover { background: #ef4444; color: white; }
+     
 
         /* Animations */
         .shake { animation: shake 0.4s ease-in-out; }
@@ -218,7 +190,43 @@
   width: 100%;
   overflow-x: auto;
 }
+.btn.anydesk-btn {
+  position: relative;
+  padding: 14px 40px;
+  font-size: 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #ffffff;
+  background: #e21e14; /* AnyDesk signature red */
+  border: none;
+  display: inline-block;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.2s ease;
+}
 
+.btn.anydesk-btn:hover {
+  background: #aa0900; /* thoda darker on hover */
+}
+
+.btn.anydesk-btn::before {
+  content: "";
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  width: 180px;
+  height: 180px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgb(86, 207, 6), transparent 60%);
+  opacity: 0;
+  border-radius: 50%;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+
+.btn.anydesk-btn:hover::before {
+  opacity: 0.6;
+}
 /* Table minimum width so columns don't break */
 table {
   min-width: 700px;
@@ -236,6 +244,16 @@ table {
 
 .table-wrapper::-webkit-scrollbar-track {
   background: rgba(255,255,255,0.1);
+}
+
+                #tsparticles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* BACKGROUND */
+    pointer-events: none; /* content clickable rahe */
 }
     </style>
 </head>
@@ -282,7 +300,7 @@ table {
                     <label>Email Address</label>
                     <input type="email" id="userEmail" value="loading..." disabled>
                 </div>
-                <button type="submit" class="btn-save">Update Profile</button>
+                <button type="submit" class="btn anydesk-btn">Update Profile</button>
             </form>
         </section>
 
@@ -297,7 +315,7 @@ table {
                     <label>New Password</label>
                     <input type="password" id="newPass" placeholder="At least 8 characters" required>
                 </div>
-                <button type="submit" class="btn-save">Change Password</button>
+                <button type="submit" class="btn anydesk-btn">Change Password</button>
             </form>
         </section>
 
@@ -319,7 +337,7 @@ table {
             <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">
                 Deleting your account will remove all sessions, reports, and face data permanently.
             </p>
-            <button class="btn-danger" id="deleteAccBtn">Delete My Account</button>
+            <button class="btn anydesk-btn" id="deleteAccBtn">Delete My Account</button>
         </section>
     </div>
 </div>
@@ -328,7 +346,20 @@ table {
     <p>© 2026 SmartSession Management | Secure Terminal Access</p>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+
 <script>
+    // tsparticles
+  tsParticles.load("tsparticles", {
+    background: { color: "#02022A" },
+    particles: {
+      number: { value: 10 },
+      size: { value: 80 },
+      opacity: { value: 0.15 },
+      shape: { type: "circle" },
+      move: { enable: false }
+    }
+  });
     // --- Utility: Set Loading State ---
     const setLoader = (btn, isLoading, originalText) => {
         btn.disabled = isLoading;
@@ -407,15 +438,44 @@ table {
         }
     });
 
-    // 3. Logout
-    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
-        e.preventDefault();
-        if(confirm("Sign out of SmartSession?")) {
-            const res = await fetch('/api/logout', { method: 'POST' });
-            window.location.href = '/signin';
-        }
-    });
+// --- 8. Logout & Navbar ---
+document.getElementById("logoutBtn").onclick = async () => {
+    // Confirmation Dialog
+    const confirmLogout = confirm("Are you sure you want to log out? Any unsaved progress might be lost.");
 
+    if (confirmLogout) {
+        try {
+            const response = await fetch("/api/logout", { method: "POST" });
+            
+            if (response.ok) {
+                // Logout successful
+                window.location.href = "/";
+            } else {
+                alert("Logout failed. Please try again.");
+            }
+        } catch (error) {
+            console.error("Logout Error:", error);
+            alert("Connection error. Could not log out.");
+        }
+    } else {
+        // Agar user 'Cancel' click kare
+        console.log("Logout cancelled by user.");
+    }
+};
+// btn hover effect
+  document.querySelectorAll(".btn.anydesk-btn").forEach(btn => {
+    btn.addEventListener("mousemove", (e) => {
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      btn.style.setProperty("--x", x + "px");
+      btn.style.setProperty("--y", y + "px");
+    });
+    btn.addEventListener("mouseleave", () => {
+      btn.style.setProperty("--x", "50%");
+      btn.style.setProperty("--y", "50%");
+    });
+  })
     // 4. Delete Account
     document.getElementById('deleteAccBtn').addEventListener('click', async () => {
         const confirmStr = prompt("Type 'DELETE' to confirm account destruction:");

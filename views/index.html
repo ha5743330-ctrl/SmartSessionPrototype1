@@ -219,7 +219,7 @@ body {
   margin-bottom: 25px;
 }
 
-.hero-left .btn.anydesk-btn {
+ .btn.anydesk-btn {
   position: relative;
   padding: 14px 40px;
   font-size: 16px;
@@ -309,19 +309,7 @@ body {
   margin: 25px 0;
 }
 
-.btn{
-  display: inline-block;
-  background-color: #ff523b;
-  color: #fff;
-  padding: 10px 30px;
-  margin: 30px 0;
-  border-radius: 30px;
-  transition: 0.3s;
-}
 
-.btn:hover{
-  background: #db0505;
-}
 
 /* -------- HEADER BG -------- */
 
@@ -708,7 +696,7 @@ ul{
         <p style="font-size: 30px;">Remote Access</p>
         <small>We connect you from where you are to where you need to be.</small>
         <br>
-        <a href="signin" class="btn">Sign in</a>
+        <a href="/signin" class="btn anydesk-btn">Sign in</a>
       </div>
     </div>
   </div>
@@ -786,13 +774,30 @@ ul{
     });
   });
 
-  // Logout
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    const res = await fetch('/api/logout', { method: 'POST' });
-    const data = await res.json();
-    alert(data.message);
-    window.location.href = '/';
-  });
+ // --- 8. Logout & Navbar ---
+document.getElementById("logoutBtn").onclick = async () => {
+    // Confirmation Dialog
+    const confirmLogout = confirm("Are you sure you want to log out? Any unsaved progress might be lost.");
+
+    if (confirmLogout) {
+        try {
+            const response = await fetch("/api/logout", { method: "POST" });
+            
+            if (response.ok) {
+                // Logout successful
+                window.location.href = "/";
+            } else {
+                alert("Logout failed. Please try again.");
+            }
+        } catch (error) {
+            console.error("Logout Error:", error);
+            alert("Connection error. Could not log out.");
+        }
+    } else {
+        // Agar user 'Cancel' click kare
+        console.log("Logout cancelled by user.");
+    }
+};
 
   // Mobile Menu Toggle
   const menuIcon = document.getElementById('menu-icon');

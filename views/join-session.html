@@ -121,20 +121,7 @@ body {
     box-shadow: 0 0 15px rgba(0, 255, 170, 0.2);
 }
 
-#joinBtn {
-    width: 100%;
-    padding: 15px;
-    border-radius: 10px;
-    border: none;
-    background: linear-gradient(45deg, #00ffaa, #00b894);
-    color: #000;
-    font-weight: 700;
-    font-size: 16px;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: 0.4s;
-}
+
 
 #joinBtn:hover {
     transform: translateY(-2px);
@@ -259,17 +246,44 @@ video {
       cursor: pointer;
       color: #000;
     }
-    .btn-danger {
-      background-color: #ff4d4f;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .btn-danger:hover {
-      background-color: #ff7875;
-    }
+    .btn.anydesk-btn {
+  position: relative;
+  padding: 14px 40px;
+  font-size: 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #ffffff;
+  background: #e21e14; /* AnyDesk signature red */
+  border: none;
+  display: inline-block;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.2s ease;
+}
+
+.btn.anydesk-btn:hover {
+  background: #aa0900; /* thoda darker on hover */
+}
+
+.btn.anydesk-btn::before {
+  content: "";
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  width: 180px;
+  height: 180px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgb(86, 207, 6), transparent 60%);
+  opacity: 0;
+  border-radius: 50%;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+
+.btn.anydesk-btn:hover::before {
+  opacity: 0.6;
+}
+
 
     @media (max-width: 900px) {
       nav ul {
@@ -314,7 +328,15 @@ video {
     z-index: 9999;
 }
 
-
+        #tsparticles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* BACKGROUND */
+    pointer-events: none; /* content clickable rahe */
+}
   </style>
 </head>
 
@@ -349,7 +371,7 @@ video {
 
     <div class="input-wrapper">
         <input type="text" id="sessionCode" placeholder="Enter Session Code">
-        <button id="joinBtn">Connect Now</button>
+        <button id="joinBtn" class="btn anydesk-btn">Connect Now</button>
     </div>
 
     <div id="connectingText">
@@ -380,8 +402,11 @@ video {
   <!-- Scripts -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/signaling.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+
 
   <script>
+
     const socket = io();
     
     // UI Elements
@@ -513,11 +538,30 @@ video {
         if (text) sendControlEvent("text-data", { text });
     };
 
-    // --- 8. Logout & Navbar ---
-    document.getElementById("logoutBtn").onclick = async () => {
-        await fetch("/api/logout", { method: "POST" });
-        window.location.href = "/";
-    };
+// --- 8. Logout & Navbar ---
+document.getElementById("logoutBtn").onclick = async () => {
+    // Confirmation Dialog
+    const confirmLogout = confirm("Are you sure you want to log out? Any unsaved progress might be lost.");
+
+    if (confirmLogout) {
+        try {
+            const response = await fetch("/api/logout", { method: "POST" });
+            
+            if (response.ok) {
+                // Logout successful
+                window.location.href = "/";
+            } else {
+                alert("Logout failed. Please try again.");
+            }
+        } catch (error) {
+            console.error("Logout Error:", error);
+            alert("Connection error. Could not log out.");
+        }
+    } else {
+        // Agar user 'Cancel' click kare
+        console.log("Logout cancelled by user.");
+    }
+};
 
     const menuIcon = document.getElementById('menu-icon');
     const navLinks = document.getElementById('nav-links');
@@ -525,6 +569,31 @@ video {
         navLinks.classList.toggle('active');
         menuIcon.classList.toggle('active');
     });
+    // btn hover effect
+  document.querySelectorAll(".btn.anydesk-btn").forEach(btn => {
+    btn.addEventListener("mousemove", (e) => {
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      btn.style.setProperty("--x", x + "px");
+      btn.style.setProperty("--y", y + "px");
+    });
+    btn.addEventListener("mouseleave", () => {
+      btn.style.setProperty("--x", "50%");
+      btn.style.setProperty("--y", "50%");
+    });
+  })
+      // tsparticles
+  tsParticles.load("tsparticles", {
+    background: { color: "#02022A" },
+    particles: {
+      number: { value: 10 },
+      size: { value: 80 },
+      opacity: { value: 0.15 },
+      shape: { type: "circle" },
+      move: { enable: false }
+    }
+  });
   </script>
 </body>
 </html>
