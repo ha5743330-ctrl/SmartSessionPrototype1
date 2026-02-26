@@ -253,6 +253,7 @@
     z-index: -1; /* BACKGROUND */
     pointer-events: none; /* content clickable rahe */
 }
+
     </style>
 </head>
 <body>
@@ -300,7 +301,13 @@
                 <video id="localVideo" autoplay playsinline muted></video>
                 <div id="laser-dot"></div>
             </div>
+            <div class="action-area" id="activeActions" style="display: none;">
+                <button id="switchScreenBtn" class="btn-main" style="width: auto; background: #ffaa00; margin-right: 10px;">
+                    <i class="fas fa-exchange-alt"></i> Switch Screen/Tab
+                </button>
 
+                <button id="endSessionBtn" class="btn-danger"><i class="fas fa-power-off"></i> Terminate Session</button>
+            </div>
             <div class="action-area" id="activeActions" style="display: none;">
                 <button id="endSessionBtn" class="btn-danger"><i class="fas fa-power-off"></i> Terminate Session</button>
             </div>
@@ -316,217 +323,197 @@
 
 <script>
     // tsparticles
-  tsParticles.load("tsparticles", {
-    background: { color: "#02022A" },
-    particles: {
-      number: { value: 10 },
-      size: { value: 80 },
-      opacity: { value: 0.15 },
-      shape: { type: "circle" },
-      move: { enable: false }
-    }
-  });
-        const socket = io();
-        // let localStream = null;
-        // let currentSessionCode = null;
-
-        // --- 1. Create Session & Start Screen Share ---
-        document.getElementById("createSessionForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const sessionName = document.getElementById("sessionName").value;
-
-            try {
-                // Production Grade Screen Capture
-                const stream = await navigator.mediaDevices.getDisplayMedia({
-                    video: { cursor: "always", displaySurface: "monitor" },
-                    audio: true
-                });
-
-                localStream = stream;
-                window.localStream = stream; // For signaling.js access
-                document.getElementById("localVideo").srcObject = stream;
-
-                // API Call
-                const res = await fetch("/api/create-session", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ sessionName })
-                });
-
-                const data = await res.json();
-                if (!data.success) throw new Error(data.message);
-
-                // UI Updates
-                currentSessionCode = data.sessionCode;
-                document.getElementById("setupFormArea").style.display = "none";
-                document.getElementById("sessionCodeBox").style.display = "block";
-                document.getElementById("sessionCode").innerText = data.sessionCode;
-                document.getElementById("activeActions").style.display = "flex";
-                document.getElementById("status-text").innerText = "LIVE BROADCASTING";
-
-                // Initialize Signaling Room
-                if(window.createRoom) window.createRoom(data.sessionCode);
-
-                // Handle manual "Stop Sharing" from browser bar
-                stream.getVideoTracks()[0].onended = () => terminateSession();
-
-            } catch (err) {
-                console.error("Session Start Error:", err);
-                alert("Could not start session: " + err.message);
-            }
-        });
-
-        // --- 2. Remote Control Listeners ---
-        socket.on("host-receive-control", ({ type, data }) => {
-            console.log(`Incoming Command: ${type}`, data);
-
-            switch(type) {
-                case "pointer-move":
-                    updateLaserPosition(data.x, data.y);
-                    break;
-
-                case "text-data":
-                    handleIncomingText(data.text);
-                    break;
-
-                case "file-transfer":
-                    handleFileDownload(data);
-                    break;
-
-                case "mouse-click":
-                    // Production note: Real mouse control requires server-side robotjs
-                    console.log("Viewer requested click at current position");
-                    break;
-            }
-        });
-
-        // --- 3. Functional Features Implementation ---
-
-        function updateLaserPosition(xRatio, yRatio) {
-            const monitor = document.getElementById("host-monitor");
-            const dot = document.getElementById("laser-dot");
-            const rect = monitor.getBoundingClientRect();
-
-            // Calculate position relative to the video container
-            const posX = xRatio * rect.width;
-            const posY = yRatio * rect.height;
-
-            dot.style.display = "block";
-            dot.style.left = `${posX}px`;
-            dot.style.top = `${posY}px`;
-
-            // Auto-hide after inactivity
-            clearTimeout(window.laserTimer);
-            window.laserTimer = setTimeout(() => {
-                dot.style.display = "none";
-            }, 2000);
+    tsParticles.load("tsparticles", {
+        background: { color: "#02022A" },
+        particles: {
+            number: { value: 10 },
+            size: { value: 80 },
+            opacity: { value: 0.15 },
+            shape: { type: "circle" },
+            move: { enable: false }
         }
+    });
 
-        function handleIncomingText(text) {
-            if (!text) return;
-            // Copy to clipboard for host convenience
-            navigator.clipboard.writeText(text).then(() => {
-                alert(`Viewer Sent: "${text}"\n(Automatically copied to your clipboard)`);
-            }).catch(err => {
-                alert(`Viewer Sent: ${text}`);
-            });
-        }
+    const socket = io();
+    // Note: localStream aur currentSessionCode signaling.js ya global scope se manage ho rahe hain
 
-        function handleFileDownload(fileData) {
-            try {
-                const blob = new Blob([fileData.blob], { type: fileData.fileType || 'application/octet-stream' });
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `Viewer_File_${fileData.fileName}`;
-                document.body.appendChild(link);
-                link.click();
-                setTimeout(() => {
-                    window.URL.revokeObjectURL(url);
-                    link.remove();
-                }, 200);
-            } catch (e) {
-                console.error("File Save Error:", e);
-            }
-        }
+    // --- 1. Create Session & Start Screen Share ---
+    document.getElementById("createSessionForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const sessionName = document.getElementById("sessionName").value;
 
-// --- 4. Session Termination (Modified) ---
-async function terminateSession() {
-    // 1. Camera/Mic band karein
-    if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-    }
-
-    // 2. Database mein session ko Inactive karein (ZAROORI)
-    if (currentSessionCode) {
         try {
-            await fetch('/api/end-session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sessionCode: currentSessionCode })
+            // Production Grade Screen Capture
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                video: { cursor: "always", displaySurface: "monitor" },
+                audio: true
             });
-            
-            // 3. Socket ko inform karein (Real-time update ke liye)
-            socket.emit("endSession", { sessionCode: currentSessionCode });
-            
+
+            localStream = stream;
+            window.localStream = stream; // For signaling.js access
+            document.getElementById("localVideo").srcObject = stream;
+
+            // API Call
+            const res = await fetch("/api/create-session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sessionName })
+            });
+
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message);
+
+            // UI Updates
+            currentSessionCode = data.sessionCode;
+            document.getElementById("setupFormArea").style.display = "none";
+            document.getElementById("sessionCodeBox").style.display = "block";
+            document.getElementById("sessionCode").innerText = data.sessionCode;
+            document.getElementById("activeActions").style.display = "flex";
+            document.getElementById("status-text").innerText = "LIVE BROADCASTING";
+
+            // Initialize Signaling Room
+            if(window.createRoom) window.createRoom(data.sessionCode);
+
+            // Handle manual "Stop Sharing" from browser bar
+            stream.getVideoTracks()[0].onended = () => terminateSession();
+
         } catch (err) {
-            console.error("Database update failed:", err);
+            console.error("Session Start Error:", err);
+            alert("Could not start session: " + err.message);
         }
+    });
+
+    // --- 2. Remote Control Listeners ---
+    socket.on("host-receive-control", ({ type, data }) => {
+        console.log(`Incoming Command: ${type}`, data);
+
+        switch(type) {
+            case "pointer-move":
+                updateLaserPosition(data.x, data.y);
+                break;
+
+            case "text-data":
+                handleIncomingText(data.text);
+                break;
+
+            case "file-transfer":
+                handleFileDownload(data);
+                break;
+
+            case "mouse-click":
+                console.log("Viewer requested click at current position");
+                break;
+        }
+    });
+
+    // --- 3. Functional Features Implementation ---
+    function updateLaserPosition(xRatio, yRatio) {
+        const monitor = document.getElementById("host-monitor");
+        const dot = document.getElementById("laser-dot");
+        const rect = monitor.getBoundingClientRect();
+
+        const posX = xRatio * rect.width;
+        const posY = yRatio * rect.height;
+
+        dot.style.display = "block";
+        dot.style.left = `${posX}px`;
+        dot.style.top = `${posY}px`;
+
+        clearTimeout(window.laserTimer);
+        window.laserTimer = setTimeout(() => {
+            dot.style.display = "none";
+        }, 2000);
     }
 
-    alert("Session terminated and database updated.");
-    window.location.href = "/";
-}
-
-document.getElementById("endSessionBtn").addEventListener("click", () => {
-    if (confirm("Are you sure you want to kill the active session? This will remove it from Admin Dashboard.")) {
-        terminateSession();
-    }
-});
-        // Server forced end
-        socket.on("sessionEnded", () => {
-            alert("The session was closed by the server.");
-            window.location.href = "/";
+    function handleIncomingText(text) {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            alert(`Viewer Sent: "${text}"\n(Automatically copied to your clipboard)`);
+        }).catch(err => {
+            alert(`Viewer Sent: ${text}`);
         });
-
-          // btn hover effect
-  document.querySelectorAll(".btn.anydesk-btn").forEach(btn => {
-    btn.addEventListener("mousemove", (e) => {
-      const rect = btn.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      btn.style.setProperty("--x", x + "px");
-      btn.style.setProperty("--y", y + "px");
-    });
-    btn.addEventListener("mouseleave", () => {
-      btn.style.setProperty("--x", "50%");
-      btn.style.setProperty("--y", "50%");
-    });
-  });
-// --- 8. Logout & Navbar ---
-document.getElementById("logoutBtn").onclick = async () => {
-    // Confirmation Dialog
-    const confirmLogout = confirm("Are you sure you want to log out? Any unsaved progress might be lost.");
-
-    if (confirmLogout) {
-        try {
-            const response = await fetch("/api/logout", { method: "POST" });
-            
-            if (response.ok) {
-                // Logout successful
-                window.location.href = "/";
-            } else {
-                alert("Logout failed. Please try again.");
-            }
-        } catch (error) {
-            console.error("Logout Error:", error);
-            alert("Connection error. Could not log out.");
-        }
-    } else {
-        // Agar user 'Cancel' click kare
-        console.log("Logout cancelled by user.");
     }
-};
+
+    function handleFileDownload(fileData) {
+        try {
+            const blob = new Blob([fileData.blob], { type: fileData.fileType || 'application/octet-stream' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Viewer_File_${fileData.fileName}`;
+            document.body.appendChild(link);
+            link.click();
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url);
+                link.remove();
+            }, 200);
+        } catch (e) {
+            console.error("File Save Error:", e);
+        }
+    }
+
+    // --- 4. Session Termination ---
+    async function terminateSession() {
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+        }
+
+        if (currentSessionCode) {
+            try {
+                await fetch('/api/end-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionCode: currentSessionCode })
+                });
+                socket.emit("endSession", { sessionCode: currentSessionCode });
+            } catch (err) {
+                console.error("Database update failed:", err);
+            }
+        }
+
+        alert("Session terminated and database updated.");
+        window.location.href = "/";
+    }
+
+    document.getElementById("endSessionBtn").addEventListener("click", () => {
+        if (confirm("Are you sure you want to kill the active session? This will remove it from Admin Dashboard.")) {
+            terminateSession();
+        }
+    });
+
+    socket.on("sessionEnded", () => {
+        alert("The session was closed by the server.");
+        window.location.href = "/";
+    });
+
+    // --- 5. UI Effects ---
+    document.querySelectorAll(".btn.anydesk-btn").forEach(btn => {
+        btn.addEventListener("mousemove", (e) => {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            btn.style.setProperty("--x", x + "px");
+            btn.style.setProperty("--y", y + "px");
+        });
+        btn.addEventListener("mouseleave", () => {
+            btn.style.setProperty("--x", "50%");
+            btn.style.setProperty("--y", "50%");
+        });
+    });
+
+    // --- 6. Logout & Navbar ---
+    document.getElementById("logoutBtn").onclick = async () => {
+        const confirmLogout = confirm("Are you sure you want to log out?");
+        if (confirmLogout) {
+            try {
+                const response = await fetch("/api/logout", { method: "POST" });
+                if (response.ok) window.location.href = "/";
+                else alert("Logout failed.");
+            } catch (error) {
+                console.error("Logout Error:", error);
+            }
+        }
+    };
 
     const menuIcon = document.getElementById('menu-icon');
     const navLinks = document.getElementById('nav-links');
@@ -534,13 +521,69 @@ document.getElementById("logoutBtn").onclick = async () => {
         navLinks.classList.toggle('active');
         menuIcon.classList.toggle('active');
     });
-    // Agar user tab band kare ya browser exit kare
-window.onbeforeunload = function() {
-    if (currentSessionCode) {
-        // Beacon API use karte hain jab tab close ho raha ho
-        navigator.sendBeacon('/api/end-session', JSON.stringify({ sessionCode: currentSessionCode }));
-    }
-};
-    </script>
+
+    window.onbeforeunload = function() {
+        if (currentSessionCode) {
+            navigator.sendBeacon('/api/end-session', JSON.stringify({ sessionCode: currentSessionCode }));
+        }
+    };
+
+    // --- 7. FIX: SCREEN SWITCH LOGIC (WITH MULTI-VIEWER SUPPORT) ---
+    document.getElementById("switchScreenBtn").addEventListener("click", async () => {
+        try {
+            // 1. Capture new screen
+            const newStream = await navigator.mediaDevices.getDisplayMedia({
+                video: { cursor: "always", displaySurface: "monitor" },
+                audio: true
+            });
+
+            const newVideoTrack = newStream.getVideoTracks()[0];
+
+            // 2. Update Local Monitor
+            const localVideo = document.getElementById("localVideo");
+            localVideo.srcObject = newStream;
+
+            // 3. Update all connected viewers (hostPCs object signaling.js se access ho raha hai)
+            if (window.hostPCs) {
+                for (const viewerId in window.hostPCs) {
+                    const pc = window.hostPCs[viewerId];
+                    const senders = pc.getSenders();
+                    const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+
+                    if (videoSender) {
+                        // Naya track replace karein
+                        await videoSender.replaceTrack(newVideoTrack);
+                        
+                        // Renegotiate taake viewer ko notification mile
+                        const offer = await pc.createOffer();
+                        await pc.setLocalDescription(offer);
+                        
+                        // Signaling.js ka function use karein (to, from, data)
+                        if (window.safeEmitSignal) {
+                            window.safeEmitSignal(viewerId, { type: "offer", sdp: offer });
+                        }
+                    }
+                }
+            }
+
+            // 4. Stop old stream tracks
+            if (window.localStream) {
+                window.localStream.getTracks().forEach(track => track.stop());
+            }
+
+            // 5. Update global variables
+            window.localStream = newStream;
+            localStream = newStream;
+
+            // Handle manual stop from browser
+            newVideoTrack.onended = () => terminateSession();
+
+            console.log("✅ Screen switched for all viewers");
+
+        } catch (err) {
+            console.error("Error switching screen:", err);
+        }
+    });
+</script>
 </body>
 </html>

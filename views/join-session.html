@@ -594,6 +594,16 @@ document.getElementById("logoutBtn").onclick = async () => {
       move: { enable: false }
     }
   });
+  // signaling.js mein Viewer ke liye ye event zaroori hai
+peerConnection.ontrack = (event) => {
+    console.log("Track received/updated!");
+    const remoteVideo = document.getElementById("remoteVideo");
+    
+    // Agar existing stream hai toh usey naye track se update karein
+    if (remoteVideo.srcObject !== event.streams[0]) {
+        remoteVideo.srcObject = event.streams[0];
+    }
+};
   </script>
 </body>
 </html>

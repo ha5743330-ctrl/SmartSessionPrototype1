@@ -150,7 +150,29 @@ signalingSocket.on("viewer-joined", async ({ viewerId }) => {
     }
   } catch (err) { console.error("host createOffer error:", err); }
 });
+// ✅ Naya Function: Jab Host screen change karega, sab viewers ko naya track bhejega
+async function hostUpdateStream(newStream) {
+    localStream = newStream;
+    const videoTrack = newStream.getVideoTracks()[0];
 
+    // Sab connected viewers ke track replace karein
+    for (const viewerId in hostPCs) {
+        const pc = hostPCs[viewerId];
+        const senders = pc.getSenders();
+        const videoSender = senders.find(s => s.track.kind === 'video');
+
+        if (videoSender) {
+            log("Replacing track for viewer:", viewerId);
+            await videoSender.replaceTrack(videoTrack);
+        }
+
+        // ⚠️ ZAROORI: Kuch browsers ko batana parta hai ke track change hua hai
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        safeEmitSignal(viewerId, { type: "offer", sdp: offer });
+    }
+}
+window.hostUpdateStream = hostUpdateStream;
 // --------- HOST Data Channel ----------
 function setupHostDataChannel(dc, viewerId) {
   dc.onopen = () => log("host data channel open to", viewerId);
