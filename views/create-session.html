@@ -65,6 +65,27 @@
       border-radius: 2px;
       transition: 0.3s;
     }
+     @media (max-width: 900px) {
+      nav ul {
+        position: absolute;
+        top: 65px;
+        left: 0;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        flex-direction: column;
+        align-items: center;
+        max-height: 0;
+        overflow: hidden;
+      }
+      nav ul.active { max-height: 500px; padding: 10px 0; }
+      nav ul li { margin: 15px 0; }
+      .menu-icon { display: flex; margin: 0px 40px 0px 0px; }
+    }
+    .menu-icon.active div:nth-child(1) { transform: rotate(45deg) translateY(8px); }
+    .menu-icon.active div:nth-child(2) { opacity: 0; }
+    .menu-icon.active div:nth-child(3) { transform: rotate(-45deg) translateY(-8px); }
+      nav ul li a:hover, nav ul li a.active { color: var(--white); border-bottom: 2px solid var(--accent-red); }
+ 
         /* --- Main Layout --- */
         .dashboard-wrapper {
             flex: 1;
@@ -168,27 +189,7 @@
             display: flex; align-items: center; gap: 8px;
         }
         .pulse-dot { width: 8px; height: 8px; background: var(--neon-cyan); border-radius: 50%; animation: blink 1s infinite; }
-    @media (max-width: 900px) {
-      nav ul {
-        position: absolute;
-        top: 65px;
-        left: 0;
-        width: 100%;
-        background: rgba(0, 0, 0, 0.9);
-        flex-direction: column;
-        align-items: center;
-        max-height: 0;
-        overflow: hidden;
-      }
-      nav ul.active { max-height: 500px; padding: 10px 0; }
-      nav ul li { margin: 15px 0; }
-      .menu-icon { display: flex; margin: 0px 40px 0px 0px; }
-    }
-    .menu-icon.active div:nth-child(1) { transform: rotate(45deg) translateY(8px); }
-    .menu-icon.active div:nth-child(2) { opacity: 0; }
-    .menu-icon.active div:nth-child(3) { transform: rotate(-45deg) translateY(-8px); }
-      nav ul li a:hover, nav ul li a.active { color: var(--white); border-bottom: 2px solid var(--accent-red); }
-        /* --- Controls --- */
+          /* --- Controls --- */
         .action-area { margin-top: 25px; display: flex; justify-content: center; gap: 15px; }
 .btn.anydesk-btn {
   position: relative;
@@ -197,7 +198,7 @@
   border-radius: 8px;
   text-decoration: none;
   color: #ffffff;
-  background: #e21e14; /* AnyDesk signature red */
+  background: #720202; /* AnyDesk signature red */
   border: none;
   display: inline-block;
   cursor: pointer;
@@ -206,7 +207,7 @@
 }
 
 .btn.anydesk-btn:hover {
-  background: #aa0900; /* thoda darker on hover */
+  background: #720202; /* thoda darker on hover */
 }
 
 .btn.anydesk-btn::before {

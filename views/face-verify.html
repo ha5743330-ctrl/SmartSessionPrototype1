@@ -1,241 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Identity Check | SmartSession Security</title>
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --primary: #8b5cf6; /* Violet security theme */
-            --primary-glow: rgba(139, 92, 246, 0.4);
-            --success: #10b981;
-            --error: #f43f5e;
-            --bg: #020617;
-            --glass: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.08);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identity Check | SmartSession Security</title>
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
-            color: #f8fafc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
-        /* Ambient Glows */
-        .glow-top { position: absolute; top: -150px; left: 50%; transform: translateX(-50%); width: 600px; height: 300px; background: var(--primary); filter: blur(120px); opacity: 0.1; }
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 
-        .container {
-            background: var(--glass);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            padding: 40px;
-            border-radius: 32px;
-            border: 1px solid var(--border);
-            box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.7);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            position: relative;
-            z-index: 10;
-        }
+<style>
+:root {
+    --primary: #8b5cf6;
+    --primary-glow: rgba(139, 92, 246, 0.4);
+    --success: #10b981;
+    --error: #f43f5e;
+    --bg: #020617;
+    --glass: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.08);
+}
 
-        h2 { font-family: 'Outfit', sans-serif; font-size: 30px; font-weight: 600; margin-bottom: 10px; letter-spacing: -0.5px; }
-        p { color: #94a3b8; font-size: 15px; margin-bottom: 30px; }
+body {
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
 
-        /* --- Scan Container --- */
-        .scan-area {
-            position: relative;
-            width: 280px;
-            height: 280px;
-            margin: 0 auto 30px;
-            border-radius: 24px;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border);
-        }
+.glow-top {
+    position: absolute;
+    top: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 300px;
+    background: var(--primary);
+    filter: blur(120px);
+    opacity: 0.1;
+}
 
-        #video-container {
-            width: 100%;
-            height: 100%;
-            border-radius: 18px;
-            overflow: hidden;
-            background: #000;
-            position: relative;
-            z-index: 1;
-        }
+.container {
+    background: var(--glass);
+    backdrop-filter: blur(25px);
+    padding: 40px;
+    border-radius: 32px;
+    border: 1px solid var(--border);
+    box-shadow: 0 40px 100px -20px rgba(0,0,0,0.7);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
 
-        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+h2 {
+    font-family: 'Outfit', sans-serif;
+}
 
-        /* --- Scanning Laser Animation --- */
-        .laser {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: var(--primary);
-            box-shadow: 0 0 15px 2px var(--primary);
-            z-index: 5;
-            animation: scanning 3s ease-in-out infinite;
-            display: none; /* Logic se show hoga */
-        }
+.scan-area {
+    position: relative;
+    width: 280px;
+    height: 280px;
+    margin: 0 auto 30px;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+}
 
-        @keyframes scanning {
-            0%, 100% { top: 5%; opacity: 0.2; }
-            50% { top: 95%; opacity: 1; }
-        }
+#video-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 18px;
+    background: black;
+}
 
-        /* --- Corner Brackets --- */
-        .corner { position: absolute; width: 20px; height: 20px; border: 2px solid var(--primary); z-index: 6; border-radius: 4px; }
-        .tl { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
-        .tr { top: -2px; right: -2px; border-left: 0; border-bottom: 0; }
-        .bl { bottom: -2px; left: -2px; border-right: 0; border-top: 0; }
-        .br { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+}
 
-        /* --- UI Elements --- */
-        .status-pill {
-            display: inline-block;
-            padding: 8px 20px;
-            border-radius: 30px;
-            background: rgba(255, 255, 255, 0.05);
-            font-size: 13px;
-            font-weight: 500;
-            color: #cbd5e1;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-            transition: all 0.3s;
-        }
+.laser {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: var(--primary);
+    box-shadow: 0 0 15px var(--primary);
+    animation: scan 3s infinite;
+    display: none;
+}
 
-        .status-pill.active { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
-        .status-pill.error { border-color: var(--error); color: var(--error); background: rgba(244, 63, 94, 0.05); }
-        .status-pill.success { border-color: var(--success); color: var(--success); background: rgba(16, 185, 129, 0.05); }
+@keyframes scan {
+    0% { top: 5%; }
+    50% { top: 95%; }
+    100% { top: 5%; }
+}
 
-        .btn-verify {
-            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-            color: white;
-            border: none;
-            padding: 18px;
-            border-radius: 18px;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-            box-shadow: 0 10px 20px -5px rgba(109, 40, 217, 0.5);
-        }
+.status-pill {
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: inline-block;
+    border: 1px solid var(--border);
+    color: #cbd5e1;
+}
 
-        .btn-verify:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 20px 30px -10px rgba(109, 40, 217, 0.6); }
-        .btn-verify:disabled { background: #1e293b; color: #475569; cursor: not-allowed; box-shadow: none; }
+.status-pill.active { color: var(--primary); }
+.status-pill.error { color: var(--error); }
+.status-pill.success { color: var(--success); }
 
-    </style>
+.btn-verify {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    background: linear-gradient(135deg,#8b5cf6,#6d28d9);
+    color: white;
+}
+
+.btn-verify:disabled {
+    background: #1e293b;
+    cursor: not-allowed;
+}
+</style>
 </head>
+
 <body>
 
 <div class="glow-top"></div>
 
 <div class="container">
-    <h2>Identity Check</h2>
-    <p>Authentication required to proceed.</p>
-    
-    <div class="scan-area">
-        <div class="corner tl"></div><div class="corner tr"></div>
-        <div class="corner bl"></div><div class="corner br"></div>
-        <div id="laser-line" class="laser"></div>
-        
-        <div id="video-container">
-            <video id="video" autoplay muted playsinline></video>
-        </div>
-    </div>
 
-    <div id="message" class="status-pill">Loading Neural Models...</div>
-    
-    <button id="verify-btn" class="btn-verify" disabled>Initialize Camera</button>
+<h2>Identity Check</h2>
+<p>Authentication required</p>
+
+<div class="scan-area">
+    <div class="laser" id="laser"></div>
+    <div id="video-container">
+        <video id="video" autoplay muted playsinline></video>
+    </div>
+</div>
+
+<div id="message" class="status-pill">Loading Models...</div>
+
+<button id="verify-btn" class="btn-verify" disabled>Initialize Camera</button>
+
 </div>
 
 <script>
-    const video = document.getElementById('video');
-    const verifyBtn = document.getElementById('verify-btn');
-    const message = document.getElementById('message');
-    const laser = document.getElementById('laser-line');
+const video = document.getElementById("video");
+const btn = document.getElementById("verify-btn");
+const msg = document.getElementById("message");
+const laser = document.getElementById("laser");
 
-    async function initVerification() {
-        try {
-            await Promise.all([
-                faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-                faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-                faceapi.nets.faceRecognitionNet.loadFromUri('/models')
-            ]);
+/* ---------------- BRIGHTNESS CHECK ---------------- */
+function getBrightness() {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            video.srcObject = stream;
-            
-            video.onloadedmetadata = () => {
-                verifyBtn.disabled = false;
-                verifyBtn.textContent = "Start Identity Verification";
-                message.textContent = "Secure Layer Active";
-                message.classList.add('active');
-            };
-        } catch (err) {
-            message.textContent = "Security Fault: Camera Access Denied";
-            message.classList.add('error');
-        }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    ctx.drawImage(video, 0, 0);
+
+    const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+
+    let sum = 0;
+
+    for (let i = 0; i < data.length; i += 4) {
+        sum += (data[i] + data[i+1] + data[i+2]) / 3;
     }
 
-    verifyBtn.addEventListener('click', async () => {
-        verifyBtn.disabled = true;
-        message.textContent = "Scanning Facial Features...";
-        laser.style.display = "block"; // Scan start animation
+    return sum / (data.length / 4);
+}
 
-        const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-                                        .withFaceLandmarks()
-                                        .withFaceDescriptor();
+/* ---------------- INIT ---------------- */
+async function init() {
+    try {
+        await Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+            faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+            faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+        ]);
 
-        if (!detection) {
-            message.textContent = "Identity Not Clear. Reposition Face.";
-            message.className = "status-pill error";
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+
+        video.onloadedmetadata = () => {
+            btn.disabled = false;
+            btn.innerText = "Start Verification";
+            msg.innerText = "System Ready";
+            msg.classList.add("active");
+        };
+
+    } catch (e) {
+        msg.innerText = "Camera / Model Error";
+        msg.classList.add("error");
+    }
+}
+
+/* ---------------- LIVE FACE CHECK ---------------- */
+async function detectFace() {
+    const detection = await faceapi
+        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+    return detection;
+}
+
+/* ---------------- CLICK ---------------- */
+btn.addEventListener("click", async () => {
+
+    // 🔴 Brightness Check FIRST
+    const brightness = getBrightness();
+
+    if (brightness < 60) {
+        msg.innerText = "Please increase your brightness";
+        msg.className = "status-pill error";
+        return;
+    }
+
+    btn.disabled = true;
+    msg.innerText = "Scanning Face...";
+    laser.style.display = "block";
+
+    const detection = await detectFace();
+
+    if (!detection) {
+        msg.innerText = "Face Not Detected Properly";
+        msg.className = "status-pill error";
+        laser.style.display = "none";
+        btn.disabled = false;
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/face/verify", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({
+                liveDescriptor: Array.from(detection.descriptor)
+            })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            msg.innerText = "Access Granted";
+            msg.className = "status-pill success";
+            laser.style.borderColor = "var(--success)";
+
+            setTimeout(()=>window.location.href="/",1500);
+
+        } else {
+            msg.innerText = "Access Denied";
+            msg.className = "status-pill error";
             laser.style.display = "none";
-            verifyBtn.disabled = false;
-            return;
+            btn.disabled = false;
         }
 
-        try {
-            const res = await fetch('/api/face/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ liveDescriptor: Array.from(detection.descriptor) })
-            });
+    } catch (e) {
+        msg.innerText = "Server Error";
+        msg.className = "status-pill error";
+        laser.style.display = "none";
+        btn.disabled = false;
+    }
+});
 
-            const data = await res.json();
-
-            if (data.success) {
-                message.textContent = "Access Granted. Welcome.";
-                message.className = "status-pill success";
-                laser.style.borderColor = "var(--success)";
-                setTimeout(() => window.location.href = '/', 1500);
-            } else {
-                message.textContent = data.message || "Match Failed. Access Denied.";
-                message.className = "status-pill error";
-                laser.style.display = "none";
-                verifyBtn.disabled = false;
-            }
-        } catch (err) {
-            message.textContent = "System Link Timeout.";
-            message.className = "status-pill error";
-            laser.style.display = "none";
-            verifyBtn.disabled = false;
-        }
-    });
-
-    window.onload = initVerification;
+window.onload = init;
 </script>
+
 </body>
 </html>

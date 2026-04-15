@@ -407,203 +407,229 @@ video {
 
   <script>
 
-    const socket = io();
-    
-    // UI Elements
-    const joinBtn = document.getElementById("joinBtn");
-    const codeInput = document.getElementById("sessionCode");
-    const connecting = document.getElementById("connectingText");
-    const remoteVideo = document.getElementById("remoteVideo");
-    
-    // States
-    let isRemoteEnabled = false;
-    let laserEnabled = false;
+    // ===== FULL POLISHED REMOTE VIEWER SCRIPT =====
 
-    // --- Helper Function ---
-    function sendControlEvent(type, data) {
-        if (!window.currentRoom) return;
-        socket.emit("viewer-control", { 
-            roomId: window.currentRoom, 
-            type: type, 
-            data: data 
-        });
-    }
+// Socket Init with auto-reconnect
+const socket = io({
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000
+});
 
-    // --- 1. Join Session Logic ---
-    joinBtn.addEventListener("click", async () => {
-        const sessionCode = codeInput.value.trim();
-        if (!sessionCode) return alert("Enter a session code.");
+// UI Elements
+const joinBtn = document.getElementById("joinBtn");
+const codeInput = document.getElementById("sessionCode");
+const connecting = document.getElementById("connectingText");
+const remoteVideo = document.getElementById("remoteVideo");
 
-        connecting.style.display = "block";
-        connecting.innerHTML = '<span class="pulse"></span> Connecting to host...';
+// State
+let currentRoom = null;
+let isRemoteEnabled = false;
+let laserEnabled = false;
 
-        const res = await fetch("/api/join-session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sessionCode })
-        });
-
-        const data = await res.json();
-
-        if (!data.success) {
-            connecting.textContent = "❌ " + data.message;
-            return;
-        }
-
-        connecting.textContent = "🔗 Connected to Host!";
-        window.currentRoom = sessionCode; 
-        
-        // Signaling.js connection trigger
-        if(window.joinRoomAsViewer) {
-            window.joinRoomAsViewer(sessionCode, remoteVideo);
-        }
-    });
-
-    // --- 2. Mouse & Pointer Logic ---
-    remoteVideo.addEventListener("mousemove", (e) => {
-        if (!window.currentRoom || (!isRemoteEnabled && !laserEnabled)) return;
-        
-        const rect = remoteVideo.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width;
-        const y = (e.clientY - rect.top) / rect.height;
-
-        if (isRemoteEnabled) {
-            sendControlEvent("mouse-move", { x, y });
-        } else if (laserEnabled) {
-            sendControlEvent("pointer-move", { x, y });
-        }
-    });
-
-    // Click Logic
-    remoteVideo.addEventListener("mousedown", (e) => {
-        if (!isRemoteEnabled) return;
-        sendControlEvent("mouse-click", { button: e.button });
-    });
-
-    // --- 3. Toggles ---
-    document.getElementById("laserBtn").onclick = () => {
-        laserEnabled = !laserEnabled;
-        isRemoteEnabled = false;
-        alert(laserEnabled ? "🔴 Laser Pointer Active" : "Laser Off");
-    };
-
-    document.getElementById("remoteControlBtn").onclick = function() {
-        isRemoteEnabled = !isRemoteEnabled;
-        laserEnabled = false;
-        this.style.background = isRemoteEnabled ? "#ff4d4f" : "#00b894";
-        this.innerHTML = isRemoteEnabled ? "🔒 Stop Access" : "🖱️ Remote Access";
-    };
-
-    // --- 4. File Sharing ---
-    document.getElementById("fileShareBtn").onclick = () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file || !window.currentRoom) return;
-
-            const reader = new FileReader();
-            reader.onload = () => {
-                sendControlEvent("file-transfer", {
-                    fileName: file.name,
-                    fileType: file.type,
-                    blob: reader.result 
-                });
-                alert("File Sent!");
-            };
-            reader.readAsArrayBuffer(file);
-        };
-        input.click();
-    };
-
-    // --- 5. Fullscreen Logic ---
-    function toggleFullScreen() {
-        const player = document.getElementById('player');
-        if (!document.fullscreenElement) {
-            player.requestFullscreen().catch(err => alert("Error enabling fullscreen"));
-        } else {
-            document.exitFullscreen();
-        }
-    }
-
-    // --- 6. Host Session Ended Listener ---
-    socket.on("sessionEnded", () => {
-        alert("The host has closed the session.");
-        window.location.href = "/";
-    });
-
-    // --- 7. Send Text Command ---
-    document.getElementById("sendTextBtn").onclick = () => {
-        const text = prompt("Enter text to send to host:");
-        if (text) sendControlEvent("text-data", { text });
-    };
-
-// --- 8. Logout & Navbar ---
-document.getElementById("logoutBtn").onclick = async () => {
-    // Confirmation Dialog
-    const confirmLogout = confirm("Are you sure you want to log out? Any unsaved progress might be lost.");
-
-    if (confirmLogout) {
-        try {
-            const response = await fetch("/api/logout", { method: "POST" });
-            
-            if (response.ok) {
-                // Logout successful
-                window.location.href = "/";
-            } else {
-                alert("Logout failed. Please try again.");
-            }
-        } catch (error) {
-            console.error("Logout Error:", error);
-            alert("Connection error. Could not log out.");
-        }
-    } else {
-        // Agar user 'Cancel' click kare
-        console.log("Logout cancelled by user.");
-    }
-};
-
-    const menuIcon = document.getElementById('menu-icon');
-    const navLinks = document.getElementById('nav-links');
-    menuIcon.addEventListener('click', () => {
-        navLinks.classList.toggle('active');
-        menuIcon.classList.toggle('active');
-    });
-    // btn hover effect
-  document.querySelectorAll(".btn.anydesk-btn").forEach(btn => {
-    btn.addEventListener("mousemove", (e) => {
-      const rect = btn.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      btn.style.setProperty("--x", x + "px");
-      btn.style.setProperty("--y", y + "px");
-    });
-    btn.addEventListener("mouseleave", () => {
-      btn.style.setProperty("--x", "50%");
-      btn.style.setProperty("--y", "50%");
-    });
-  })
-      // tsparticles
-  tsParticles.load("tsparticles", {
-    background: { color: "#02022A" },
-    particles: {
-      number: { value: 10 },
-      size: { value: 80 },
-      opacity: { value: 0.15 },
-      shape: { type: "circle" },
-      move: { enable: false }
-    }
+// ===== HELPER =====
+function sendControlEvent(type, data) {
+  if (!currentRoom) return;
+  socket.emit("viewer-control", {
+    roomId: currentRoom,
+    type,
+    data
   });
-  // signaling.js mein Viewer ke liye ye event zaroori hai
-peerConnection.ontrack = (event) => {
-    console.log("Track received/updated!");
-    const remoteVideo = document.getElementById("remoteVideo");
-    
-    // Agar existing stream hai toh usey naye track se update karein
-    if (remoteVideo.srcObject !== event.streams[0]) {
-        remoteVideo.srcObject = event.streams[0];
+}
+
+// ===== JOIN SESSION =====
+joinBtn.addEventListener("click", async () => {
+  const sessionCode = codeInput.value.trim();
+  if (!sessionCode) return showToast("Enter session code");
+
+  connecting.style.display = "block";
+  connecting.innerHTML = "⏳ Connecting...";
+
+  try {
+    const res = await fetch("/api/join-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionCode })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      connecting.innerHTML = "❌ " + data.message;
+      return;
     }
+
+    currentRoom = sessionCode;
+    connecting.innerHTML = "✅ Connected";
+
+    if (window.joinRoomAsViewer) {
+      window.joinRoomAsViewer(sessionCode, remoteVideo);
+    }
+  } catch (err) {
+    showToast("Connection failed");
+  }
+});
+
+// ===== MOUSE CONTROL =====
+remoteVideo.addEventListener("mousemove", (e) => {
+  if (!currentRoom || (!isRemoteEnabled && !laserEnabled)) return;
+
+  const rect = remoteVideo.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width;
+  const y = (e.clientY - rect.top) / rect.height;
+
+  if (isRemoteEnabled) {
+    sendControlEvent("mouse-move", { x, y });
+  } else if (laserEnabled) {
+    sendControlEvent("pointer-move", { x, y });
+  }
+});
+
+remoteVideo.addEventListener("mousedown", (e) => {
+  if (!isRemoteEnabled) return;
+  sendControlEvent("mouse-click", { button: e.button });
+});
+
+// ===== TOGGLES =====
+document.getElementById("laserBtn").onclick = () => {
+  laserEnabled = !laserEnabled;
+  isRemoteEnabled = false;
+  updateStatus();
 };
+
+document.getElementById("remoteControlBtn").onclick = function () {
+  isRemoteEnabled = !isRemoteEnabled;
+  laserEnabled = false;
+  updateStatus();
+};
+
+function updateStatus() {
+  showToast(
+    isRemoteEnabled
+      ? "🖱️ Remote Control Enabled"
+      : laserEnabled
+      ? "🔴 Laser Pointer Enabled"
+      : "Controls Off"
+  );
+}
+
+// ===== FILE SHARING (CHUNK SAFE) =====
+document.getElementById("fileShareBtn").onclick = () => {
+  const input = document.createElement("input");
+  input.type = "file";
+
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentRoom) return;
+
+    const chunkSize = 64 * 1024;
+    let offset = 0;
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      sendControlEvent("file-chunk", {
+        fileName: file.name,
+        chunk: event.target.result,
+        offset,
+        done: offset >= file.size
+      });
+
+      offset += chunkSize;
+      if (offset < file.size) {
+        readSlice(offset);
+      } else {
+        showToast("✅ File Sent");
+      }
+    };
+
+    const readSlice = (o) => {
+      const slice = file.slice(o, o + chunkSize);
+      reader.readAsArrayBuffer(slice);
+    };
+
+    readSlice(0);
+  };
+
+  input.click();
+};
+
+// ===== FULLSCREEN =====
+function toggleFullScreen() {
+  const player = document.getElementById("player");
+
+  if (!document.fullscreenElement) {
+    player.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// ===== TEXT COMMAND =====
+document.getElementById("sendTextBtn").onclick = () => {
+  const text = prompt("Enter message:");
+  if (text) sendControlEvent("text-data", { text });
+};
+
+// ===== LOGOUT =====
+document.getElementById("logoutBtn").onclick = async () => {
+  if (!confirm("Logout?")) return;
+
+  try {
+    await fetch("/api/logout", { method: "POST" });
+    window.location.href = "/";
+  } catch {
+    showToast("Logout failed");
+  }
+};
+
+// ===== NAVBAR =====
+const menuIcon = document.getElementById("menu-icon");
+const navLinks = document.getElementById("nav-links");
+
+menuIcon.addEventListener("click", () => {
+  navLinks.classList.toggle("active");
+  menuIcon.classList.toggle("active");
+});
+
+// ===== TOAST SYSTEM (REPLACES ALERT) =====
+function showToast(msg) {
+  const toast = document.createElement("div");
+  toast.innerText = msg;
+  toast.style = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #111;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 8px;
+    z-index: 9999;
+  `;
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.remove(), 2500);
+}
+
+// ===== SESSION END =====
+socket.on("sessionEnded", () => {
+  showToast("Session Ended");
+  setTimeout(() => (window.location.href = "/"), 1500);
+});
+
+// ===== WEBRTC STREAM =====
+if (window.peerConnection) {
+  peerConnection.ontrack = (event) => {
+    if (remoteVideo.srcObject !== event.streams[0]) {
+      remoteVideo.srcObject = event.streams[0];
+    }
+  };
+}
+
+// // ===== CONNECTION STATUS =====
+// socket.on("connect", () => showToast("🟢 Connected"));
+// socket.on("disconnect", () => showToast("🔴 Disconnected"));
+
   </script>
 </body>
 </html>

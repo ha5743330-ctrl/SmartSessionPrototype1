@@ -199,6 +199,29 @@
 </div>
 
 <script>
+    function getBrightness() {
+    if (!video.videoWidth || !video.videoHeight) return 255;
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    ctx.drawImage(video, 0, 0);
+
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+    let sum = 0;
+    let count = 0;
+
+    for (let i = 0; i < data.length; i += 4) {
+        sum += (data[i] + data[i + 1] + data[i + 2]) / 3;
+        count++;
+    }
+
+    return sum / count;
+}
     // Javascript Logic Same Rahega Jo Aapne Diya Hai
     const video = document.getElementById('video');
     const btn = document.getElementById('register-btn');
@@ -230,6 +253,13 @@
     }
 
     btn.addEventListener('click', async () => {
+        const brightness = getBrightness();
+
+        if (brightness < 60) {
+            status.textContent = "Increase brightness for better scan";
+            status.classList.add('error');
+            return;
+        }
         btn.disabled = true;
         status.textContent = "Scanning features... Hold steady.";
         status.className = "status-box";

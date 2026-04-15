@@ -226,7 +226,7 @@ body {
   border-radius: 8px;
   text-decoration: none;
   color: #ffffff;
-  background: #e21e14; /* AnyDesk signature red */
+  background: #720202; /* AnyDesk signature red */
   border: none;
   display: inline-block;
   cursor: pointer;
@@ -236,7 +236,7 @@ body {
 }
 
 .btn.anydesk-btn:hover {
-  background: #aa0900; /* thoda darker on hover */
+  background: #720202; /* thoda darker on hover */
 }
 
 .btn.anydesk-btn::before {
@@ -271,7 +271,7 @@ body {
 .hero-right img {
   max-width: 80%;
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  box-shadow: 0 10px 30px rgba(216, 18, 18, 0.4);
 }
 
 
@@ -800,14 +800,7 @@ document.getElementById("logoutBtn").onclick = async () => {
     }
 };
 
-  // Mobile Menu Toggle
-  const menuIcon = document.getElementById('menu-icon');
-  const navLinks = document.getElementById('nav-links');
-  menuIcon.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
-    menuIcon.classList.toggle('active');
-  });
-  
+
 
   // tsparticles
   tsParticles.load("tsparticles", {
@@ -842,6 +835,12 @@ window.addEventListener('scroll', () => {
 
     lastScroll = currentScroll;
 });
+    const menuIcon = document.getElementById('menu-icon');
+    const navLinks = document.getElementById('nav-links');
+    menuIcon.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        menuIcon.classList.toggle('active');
+    });
 </script>
 
 

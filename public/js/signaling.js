@@ -184,30 +184,30 @@ function setupHostDataChannel(dc, viewerId) {
   };
 }
 
-// Apply remote control actions
-function applyRemoteControlOnHost(msg) {
-  const video = document.getElementById("localVideo");
-  if (!video) return;
+// // Apply remote control actions
+// function applyRemoteControlOnHost(msg) {
+//   const video = document.getElementById("localVideo");
+//   if (!video) return;
 
-  let cursor = document.getElementById("remoteCursorOverlay");
-  if (!cursor) {
-    cursor = document.createElement("div");
-    cursor.id = "remoteCursorOverlay";
-    cursor.style.cssText = "position:absolute;width:12px;height:12px;background:rgba(255,0,0,0.9);border-radius:50%;pointer-events:none;z-index:99999";
-    document.body.appendChild(cursor);
-  }
+//   let cursor = document.getElementById("remoteCursorOverlay");
+//   if (!cursor) {
+//     cursor = document.createElement("div");
+//     cursor.id = "remoteCursorOverlay";
+//     cursor.style.cssText = "position:absolute;width:12px;height:12px;background:rgba(255,0,0,0.9);border-radius:50%;pointer-events:none;z-index:99999";
+//     document.body.appendChild(cursor);
+//   }
 
-  const rect = video.getBoundingClientRect();
-  const px = rect.left + (msg.x || 0) * rect.width;
-  const py = rect.top + (msg.y || 0) * rect.height;
+//   const rect = video.getBoundingClientRect();
+//   const px = rect.left + (msg.x || 0) * rect.width;
+//   const py = rect.top + (msg.y || 0) * rect.height;
 
-  if (msg.type === "mousemove") cursor.style.transform = `translate(${px-6}px, ${py-6}px)`;
-  else if (msg.type === "click") {
-    const el = document.elementFromPoint(px, py);
-    if (el) el.dispatchEvent(new MouseEvent("click", { clientX: px, clientY: py, bubbles: true, cancelable: true }));
-  }
-  else if (msg.type === "keydown" || msg.type === "keyup") document.dispatchEvent(new KeyboardEvent(msg.type, { key: msg.key, code: msg.code, bubbles: true, cancelable: true }));
-}
+//   if (msg.type === "mousemove") cursor.style.transform = `translate(${px-6}px, ${py-6}px)`;
+//   else if (msg.type === "click") {
+//     const el = document.elementFromPoint(px, py);
+//     if (el) el.dispatchEvent(new MouseEvent("click", { clientX: px, clientY: py, bubbles: true, cancelable: true }));
+//   }
+//   else if (msg.type === "keydown" || msg.type === "keyup") document.dispatchEvent(new KeyboardEvent(msg.type, { key: msg.key, code: msg.code, bubbles: true, cancelable: true }));
+// }
 
 // --------- VIEWER: Join Room ----------
 // --------- VIEWER: Join Room ----------
@@ -280,13 +280,13 @@ function setupViewerDataChannel(dc) {
   dc.onmessage = (e) => log("viewer dc message:", e.data);
 }
 
-// --------- VIEWER: helper to send control
-function viewerSendControl(msg) {
-  if (viewerDataChannel && viewerDataChannel.readyState === "open") {
-    viewerDataChannel.send(JSON.stringify(msg));
-  } else log("viewerSendControl: data channel not open yet");
-}
-window.viewerSendControl = viewerSendControl;
+// // --------- VIEWER: helper to send control
+// function viewerSendControl(msg) {
+//   if (viewerDataChannel && viewerDataChannel.readyState === "open") {
+//     viewerDataChannel.send(JSON.stringify(msg));
+//   } else log("viewerSendControl: data channel not open yet");
+// }
+// window.viewerSendControl = viewerSendControl;
 
 // --------- ALERT: Viewer sees host left
 signalingSocket.on("host-left", ({ sessionCode }) => {

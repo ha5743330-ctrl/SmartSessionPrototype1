@@ -154,15 +154,15 @@ async function startViewer(sessionCode) {
   };
 }
 
-// =============================
-// REMOTE CONTROL HANDLING
-// =============================
-function setupControlChannel(channel) {
-  channel.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    console.log("🖱️ Control:", data);
+// // =============================
+// // REMOTE CONTROL HANDLING
+// // =============================
+// function setupControlChannel(channel) {
+//   channel.onmessage = (event) => {
+//     const data = JSON.parse(event.data);
+//     console.log("🖱️ Control:", data);
 
     // TODO: integrate mouse/keyboard simulation here
     // For demo, just log control events
-  };
-}
+//   };
+// }
