@@ -378,9 +378,10 @@ video {
         <span class="pulse"></span> 🔗 Connecting to host...
     </div>
 
-    <div class="video-container" id="player">
-        <video id="remoteVideo" autoplay playsinline poster="https://via.placeholder.com/640x360/000000/00ffaa?text=Waiting+for+Stream..."></video>
-    </div>
+<div class="video-container" id="player" style="position: relative;">
+    <video id="remoteVideo" autoplay playsinline></video>
+    <div id="control-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 99; cursor: crosshair;"></div>
+</div>
 
     <div class="control-center">
         <h3><i class="fas fa-terminal"></i> Session Controls</h3>
@@ -406,7 +407,8 @@ video {
 
 
   <script>
-
+// State section mein add karein
+let lastSend = 0;                                     
     // ===== FULL POLISHED REMOTE VIEWER SCRIPT =====
 
 // Socket Init with auto-reconnect
@@ -471,25 +473,55 @@ joinBtn.addEventListener("click", async () => {
 });
 
 // ===== MOUSE CONTROL =====
-remoteVideo.addEventListener("mousemove", (e) => {
-  if (!currentRoom || (!isRemoteEnabled && !laserEnabled)) return;
+const overlay = document.getElementById("control-overlay");
 
-  const rect = remoteVideo.getBoundingClientRect();
-  const x = (e.clientX - rect.left) / rect.width;
-  const y = (e.clientY - rect.top) / rect.height;
+overlay.addEventListener("mousemove", (e) => {
+    if (!currentRoom || (!isRemoteEnabled && !laserEnabled)) return;
 
-  if (isRemoteEnabled) {
-    sendControlEvent("mouse-move", { x, y });
-  } else if (laserEnabled) {
-    sendControlEvent("pointer-move", { x, y });
-  }
+    // e.clientX ki jagah rect aur offset use karein for 100% precision
+    const rect = overlay.getBoundingClientRect();
+    const x = e.offsetX / rect.width;
+    const y = e.offsetY / rect.height;
+
+    // Throttling: Har move event mat bhejein (Lag fix)
+    const now = Date.now();
+    if (now - lastSend > 15) { 
+        sendControlEvent(isRemoteEnabled ? "mouse-move" : "pointer-move", { x, y });
+        lastSend = now;
+    }
 });
+overlay.addEventListener("contextmenu", (e) => e.preventDefault()); // Right click menu block
 
-remoteVideo.addEventListener("mousedown", (e) => {
-  if (!isRemoteEnabled) return;
-  sendControlEvent("mouse-click", { button: e.button });
+overlay.addEventListener("mousedown", (e) => {
+    if (!isRemoteEnabled) return;
+    
+    const rect = overlay.getBoundingClientRect();
+    const x = e.offsetX / rect.width;
+    const y = e.offsetY / rect.height;
+
+    let action = "left-click";
+    if (e.button === 2) action = "right-click";
+    
+    sendControlEvent("mouse-click", { x, y, action });
 });
+overlay.addEventListener("dblclick", (e) => {
+    if (!isRemoteEnabled) return;
+    const rect = overlay.getBoundingClientRect();
+    sendControlEvent("mouse-click", { 
+        x: e.offsetX / rect.width, 
+        y: e.offsetY / rect.height, 
+        action: "double-click" 
+    });
+});
+function updateStatus() {
+    // Ye line add karein
+    overlay.style.cursor = isRemoteEnabled ? 'none' : 'crosshair';
 
+    showToast(
+        isRemoteEnabled ? "🖱️ Remote Control Enabled" : 
+        laserEnabled ? "🔴 Laser Pointer Enabled" : "Controls Off"
+    );
+}
 // ===== TOGGLES =====
 document.getElementById("laserBtn").onclick = () => {
   laserEnabled = !laserEnabled;
@@ -629,7 +661,32 @@ if (window.peerConnection) {
 // // ===== CONNECTION STATUS =====
 // socket.on("connect", () => showToast("🟢 Connected"));
 // socket.on("disconnect", () => showToast("🔴 Disconnected"));
+window.addEventListener('wheel', (e) => {
+    // roomId yahan variable hona chahiye jo aapke session ka hai
+    socket.emit("viewer-control", { 
+        roomId: currentRoomId, 
+        type: "mouse-scroll", 
+        data: { delta: e.deltaY * -1 } // Invert to match OS behavior
+    });
+}, { passive: false });
+window.addEventListener('contextmenu', (e) => {
+    e.preventDefault(); // Browser ka apna menu rokne ke liye
+    socket.emit("viewer-control", { 
+        roomId: currentRoomId, 
+        type: "mouse-click", 
+        data: { button: 'right' } 
+    });
+});
+window.addEventListener('keydown', (e) => {
+    // Avoid system keys like F12
+    if (e.key === 'F12') return;
 
+    socket.emit("viewer-control", { 
+        roomId: currentRoomId, 
+        type: "key-press", 
+        data: { key: e.key } 
+    });
+});
   </script>
 </body>
 </html>

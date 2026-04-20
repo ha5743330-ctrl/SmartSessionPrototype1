@@ -464,88 +464,167 @@ app.get('/api/reports', async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-
-// ============================
-// SOCKET.IO HANDLING (Improved & Robust)
-// ============================
-const rooms = {}; // { sessionCode: { hostId, viewers: [] } }
-const socketToRoom = new Map(); // socket.id -> sessionCode
+const rooms = {}; 
+const socketToRoom = new Map();
 
 io.on("connection", (socket) => {
-  console.log("⚡ New socket connected:", socket.id);
+    console.log("⚡ New socket connected:", socket.id);
 
-  socket.on("create-room", ({ sessionCode }) => {
-    rooms[sessionCode] = { hostId: socket.id, viewers: [] };
-    socketToRoom.set(socket.id, sessionCode);
-    socket.join(sessionCode);
-    socket.emit("room-created", { sessionCode });
-    console.log(`🟢 Room created: ${sessionCode}`);
-  });
+    // --- Room Logic ---
+    socket.on("create-room", ({ sessionCode }) => {
+        rooms[sessionCode] = { hostId: socket.id, viewers: [] };
+        socketToRoom.set(socket.id, sessionCode);
+        socket.join(sessionCode);
+        socket.emit("room-created", { sessionCode });
+        console.log(`🟢 Room created: ${sessionCode}`);
+    });
 
-  socket.on("join-room", ({ sessionCode }) => {
+  socket.on("join-room", (payload) => {
+    // Check karein ke payload object hai ya direct string
+    const sessionCode = typeof payload === 'object' ? payload.sessionCode : payload;
+    
     const room = rooms[sessionCode];
-    if (!room || !room.hostId) return socket.emit("error-room", { message: "Room not found or host not ready." });
+    if (!room) {
+        console.log(`❌ Room not found for code: ${sessionCode}`);
+        return socket.emit("error-room", { message: "Room not found." });
+    }
 
-    room.viewers.push(socket.id);
-    socketToRoom.set(socket.id, sessionCode);
+    // Room join karwana (Zaroori hai signals receive karne ke liye)
     socket.join(sessionCode);
-    io.to(room.hostId).emit("viewer-joined", { viewerId: socket.id });
+    socketToRoom.set(socket.id, sessionCode);
+
+    // Agar ye Viewer hai (Python Agent nahi), toh viewers list mein daalein
+    if (socket.id !== room.hostId) {
+        room.viewers.push(socket.id);
+        io.to(room.hostId).emit("viewer-joined", { viewerId: socket.id });
+    }
+
     socket.emit("joined", { sessionCode, hostId: room.hostId });
-    console.log(`👥 Viewer joined room: ${sessionCode}`);
-  });
-
-  socket.on("signal", ({ to, from, data }) => io.to(to).emit("signal", { from, data }));
-
-  // Viewer se control events receive karke Host ko bhejna
-socket.on("viewer-control", ({ roomId, type, data }) => {
-    // Ye event sirf us room ke Host ko jayega
-    socket.to(roomId).emit("host-receive-control", { type, data });
+    console.log(`🔹 Socket ${socket.id} successfully joined room: ${sessionCode}`);
 });
 
-  // 🔴 END SESSION EVENT
-  socket.on("endSession", ({ roomId }) => {
-    const room = rooms[roomId];
-    if (!room) return;
+    // --- SIGNALING (WebRTC) ---
+    socket.on("signal", ({ to, from, data }) => io.to(to).emit("signal", { from, data }));
 
-    // Only host can end session
-    if (room.hostId !== socket.id) {
-      return socket.emit("error-room", { message: "Only host can end the session!" });
-    }
+    // --- REMOTE CONTROL BRIDGE (The Proper Way) ---
+    socket.on("viewer-control", ({ roomId, type, data }) => {
+        if (!roomId) return;
 
-    // Notify all viewers that session ended
-    io.to(roomId).emit("sessionEnded", { roomId });
+        // Ye line signal ko us room ke Host aur Agent dono ko forward kar degi
+        // Ab Host ka PC khud faisla karega mouse kaise hilana hai
+        io.to(roomId).emit("python-control", { type, data });
 
-    // Remove all sockets from room
-    const socketsInRoom = io.sockets.adapter.rooms.get(roomId);
-    if (socketsInRoom) {
-      for (let id of socketsInRoom) {
-        io.sockets.sockets.get(id).leave(roomId);
-      }
-    }
+        // Visual pointer (Laser) ke liye
+        socket.to(roomId).emit("host-receive-control", { type, data });
+        
+        console.log(`📡 Signal Forwarded: ${type} to Room ${roomId}`);
+    });
 
-    // Delete room
-    delete rooms[roomId];
-    console.log(`🔴 Session ended by host: ${roomId}`);
-  });
+    // --- DISCONNECT & END SESSION ---
+    socket.on("endSession", ({ roomId }) => {
+        const room = rooms[roomId];
+        if (room && room.hostId === socket.id) {
+            io.to(roomId).emit("sessionEnded", { roomId });
+            delete rooms[roomId];
+        }
+    });
 
-  socket.on("disconnect", () => {
-    const sessionCode = socketToRoom.get(socket.id);
-    if (!sessionCode) return;
-
-    const room = rooms[sessionCode];
-    if (!room) return;
-
-    if (room.hostId === socket.id) {
-      io.to(sessionCode).emit("host-left", { sessionCode });
-      delete rooms[sessionCode];
-      console.log(`🔴 Host left, room ${sessionCode} closed.`);
-    } else {
-      room.viewers = room.viewers.filter(v => v !== socket.id);
-    }
-
-    socketToRoom.delete(socket.id);
-  });
+    socket.on("disconnect", () => {
+        const sessionCode = socketToRoom.get(socket.id);
+        if (sessionCode && rooms[sessionCode]) {
+            if (rooms[sessionCode].hostId === socket.id) {
+                io.to(sessionCode).emit("host-left", { sessionCode });
+                delete rooms[sessionCode];
+            }
+        }
+        socketToRoom.delete(socket.id);
+    });
 });
+// ----------------------------------
+// ==================================
+
+
+// 1. Imports aur Worker Setup (Hamesha top par)
+// const { spawn } = require('child_process');
+// const pythonWorker = spawn('python', ['controller.py']);
+
+// // Error logging for Python (Bahar rakhein)
+// pythonWorker.stderr.on('data', (data) => {
+//     console.error(`Python Error: ${data}`);
+// });
+
+// const rooms = {}; 
+// const socketToRoom = new Map();
+
+// // 2. Main Socket Block (Sirf aik baar)
+// io.on("connection", (socket) => {
+//     console.log("⚡ New socket connected:", socket.id);
+
+//     // --- Room Logic ---
+//     socket.on("create-room", ({ sessionCode }) => {
+//         rooms[sessionCode] = { hostId: socket.id, viewers: [] };
+//         socketToRoom.set(socket.id, sessionCode);
+//         socket.join(sessionCode);
+//         socket.emit("room-created", { sessionCode });
+//         console.log(`🟢 Room created: ${sessionCode}`);
+//     });
+
+//     socket.on("join-room", ({ sessionCode }) => {
+//         const room = rooms[sessionCode];
+//         if (!room || !room.hostId) return socket.emit("error-room", { message: "Room not found." });
+
+//         room.viewers.push(socket.id);
+//         socketToRoom.set(socket.id, sessionCode);
+//         socket.join(sessionCode);
+//         io.to(room.hostId).emit("viewer-joined", { viewerId: socket.id });
+//         socket.emit("joined", { sessionCode, hostId: room.hostId });
+//     });
+
+//     // --- SIGNALING (WebRTC) ---
+//     socket.on("signal", ({ to, from, data }) => io.to(to).emit("signal", { from, data }));
+
+//     // --- REMOTE CONTROL BRIDGE (The Critical Part) ---
+//     socket.on("viewer-control", ({ roomId, type, data }) => {
+//         if (!roomId) return;
+
+//         // A. Host ko visual signal bhejna (Laser/Pointer ke liye)
+//         socket.to(roomId).emit("host-receive-control", { type, data });
+
+//         // B. Python ko OS control bhejna (Mouse/Click ke liye)
+//         if (pythonWorker.stdin.writable && (type === 'mouse-move' || type === 'mouse-click')) {
+//             const command = {
+//                 type: type,
+//                 x: data.x,
+//                 y: data.y,
+//                 action: data.action || 'left-click'
+//             };
+//             pythonWorker.stdin.write(JSON.stringify(command) + "\n");
+//         }
+//     });
+
+//     // --- DISCONNECT & END SESSION ---
+//     socket.on("endSession", ({ roomId }) => {
+//         const room = rooms[roomId];
+//         if (room && room.hostId === socket.id) {
+//             io.to(roomId).emit("sessionEnded", { roomId });
+//             delete rooms[roomId];
+//         }
+//     });
+
+//     socket.on("disconnect", () => {
+//         const sessionCode = socketToRoom.get(socket.id);
+//         if (sessionCode && rooms[sessionCode]) {
+//             if (rooms[sessionCode].hostId === socket.id) {
+//                 io.to(sessionCode).emit("host-left", { sessionCode });
+//                 delete rooms[sessionCode];
+//             }
+//         }
+//         socketToRoom.delete(socket.id);
+//         console.log("User disconnected:", socket.id);
+//     });
+// });
+// ========================================
+// ========================================
 // TEMPORARY: Database clean karne ke liye
 app.get('/api/admin/db-reset', async (req, res) => {
   try {
@@ -558,16 +637,7 @@ app.get('/api/admin/db-reset', async (req, res) => {
     res.status(500).send("Error: " + err.message);
 
   }
-  // Server.js (Socket Logic)
-  // Viewer se aane wale saare controls (File, Laser, Text) Host ko bhejna
-    socket.on("viewer-control", ({ roomId, type, data }) => {
-        if (!roomId) return;
 
-        // Ye line asli magic hai: Ye specific room ke Host ko data bhejti hai
-        socket.to(roomId).emit("host-receive-control", { type, data });
-        
-        console.log(`Control Sent: ${type} to Room: ${roomId}`);
-    });
 });
 // ============================
 // SETTINGS & PROFILE APIS
