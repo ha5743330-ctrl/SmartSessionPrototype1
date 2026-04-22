@@ -523,13 +523,36 @@
         menuIcon.classList.toggle('active');
     });
 
-    window.onbeforeunload = function() {
-        if (currentSessionCode) {
-            navigator.sendBeacon('/api/end-session', JSON.stringify({ sessionCode: currentSessionCode }));
-        }
-    };
+ // Variable ko top par define karein
+let currentSessionCode = null; 
 
-    // --- 7. FIX: SCREEN SWITCH LOGIC (WITH MULTI-VIEWER SUPPORT) ---
+// Jab room create ho jaye to value set karein
+socket.on("room-created", ({ sessionCode }) => {
+    currentSessionCode = sessionCode; // Is line ko lazmi add karein
+    console.log("Room created:", sessionCode);
+});
+
+// onbeforeunload function ko safe banayein
+// Variable ko top par define karein
+
+// Jab room create ho jaye to value set karein
+socket.on("room-created", ({ sessionCode }) => {
+    currentSessionCode = sessionCode; // Is line ko lazmi add karein
+    console.log("Room created:", sessionCode);
+});
+
+// onbeforeunload function ko safe banayein
+window.onbeforeunload = function() {
+    if (currentSessionCode) {
+        socket.emit("endSession", { roomId: currentSessionCode });
+    }
+};
+// Save karte waqt
+localStorage.setItem('activeSession', sessionCode);
+
+// Retrieve karte waqt
+const savedCode = localStorage.getItem('activeSession');
+   // --- 7. FIX: SCREEN SWITCH LOGIC (WITH MULTI-VIEWER SUPPORT) ---
     document.getElementById("switchScreenBtn").addEventListener("click", async () => {
         try {
             // 1. Capture new screen

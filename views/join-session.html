@@ -472,47 +472,72 @@ joinBtn.addEventListener("click", async () => {
   }
 });
 
-// ===== MOUSE CONTROL =====
+// ===== ENHANCED REAL-MOUSE DRIVER LOGIC =====
 const overlay = document.getElementById("control-overlay");
+let mouseTimer = null;
 
+// Helper: Safety release function
+const safetyRelease = () => {
+    if (mouseTimer) clearTimeout(mouseTimer);
+    sendControlEvent("mouse-up", { button: 'left' });
+    sendControlEvent("mouse-up", { button: 'right' });
+};
+
+// 1. Precise Movement (Driver Grade)
 overlay.addEventListener("mousemove", (e) => {
-    if (!currentRoom || (!isRemoteEnabled && !laserEnabled)) return;
+    if (!currentRoom || !isRemoteEnabled) return;
 
-    // e.clientX ki jagah rect aur offset use karein for 100% precision
     const rect = overlay.getBoundingClientRect();
     const x = e.offsetX / rect.width;
     const y = e.offsetY / rect.height;
 
-    // Throttling: Har move event mat bhejein (Lag fix)
     const now = Date.now();
-    if (now - lastSend > 15) { 
-        sendControlEvent(isRemoteEnabled ? "mouse-move" : "pointer-move", { x, y });
+    if (now - lastSend > 10) { // 100Hz Polling Rate
+        sendControlEvent("mouse-move", { x, y });
         lastSend = now;
     }
 });
-overlay.addEventListener("contextmenu", (e) => e.preventDefault()); // Right click menu block
 
-overlay.addEventListener("mousedown", (e) => {
+// 2. Hardware-Level Down (Latch)
+overlay.addEventListener('mousedown', (e) => {
     if (!isRemoteEnabled) return;
     
     const rect = overlay.getBoundingClientRect();
-    const x = e.offsetX / rect.width;
-    const y = e.offsetY / rect.height;
+    const buttonType = (e.button === 2) ? 'right' : 'left';
 
-    let action = "left-click";
-    if (e.button === 2) action = "right-click";
-    
-    sendControlEvent("mouse-click", { x, y, action });
-});
-overlay.addEventListener("dblclick", (e) => {
-    if (!isRemoteEnabled) return;
-    const rect = overlay.getBoundingClientRect();
-    sendControlEvent("mouse-click", { 
+    // Start 10s Safety Latch (Professional Standard)
+    if(mouseTimer) clearTimeout(mouseTimer);
+    mouseTimer = setTimeout(safetyRelease, 10000);
+
+    sendControlEvent("mouse-down", { 
         x: e.offsetX / rect.width, 
         y: e.offsetY / rect.height, 
-        action: "double-click" 
+        button: buttonType 
     });
 });
+
+// 3. Hardware-Level Up (Release)
+overlay.addEventListener('mouseup', (e) => {
+    if (!isRemoteEnabled) return;
+    if(mouseTimer) clearTimeout(mouseTimer);
+    
+    const buttonType = (e.button === 2) ? 'right' : 'left';
+    sendControlEvent("mouse-up", { button: buttonType });
+});
+
+// 4. Critical Safety: Window Blur & Mouse Leave
+// Agar user Alt+Tab kare ya mouse area se bahar jaye to hardware release bhejain
+window.addEventListener('blur', safetyRelease);
+overlay.addEventListener('mouseleave', safetyRelease);
+
+// 5. Native Scroll
+overlay.addEventListener('wheel', (e) => {
+    if (!isRemoteEnabled) return;
+    e.preventDefault();
+    sendControlEvent("mouse-scroll", { delta: e.deltaY * -1 });
+}, { passive: false });
+
+overlay.addEventListener("contextmenu", (e) => e.preventDefault());
 function updateStatus() {
     // Ye line add karein
     overlay.style.cursor = isRemoteEnabled ? 'none' : 'crosshair';
@@ -661,33 +686,50 @@ if (window.peerConnection) {
 // // ===== CONNECTION STATUS =====
 // socket.on("connect", () => showToast("🟢 Connected"));
 // socket.on("disconnect", () => showToast("🔴 Disconnected"));
-window.addEventListener('wheel', (e) => {
-    // roomId yahan variable hona chahiye jo aapke session ka hai
-    socket.emit("viewer-control", { 
-        roomId: currentRoomId, 
-        type: "mouse-scroll", 
-        data: { delta: e.deltaY * -1 } // Invert to match OS behavior
-    });
-}, { passive: false });
-window.addEventListener('contextmenu', (e) => {
-    e.preventDefault(); // Browser ka apna menu rokne ke liye
-    socket.emit("viewer-control", { 
-        roomId: currentRoomId, 
-        type: "mouse-click", 
-        data: { button: 'right' } 
-    });
-});
-window.addEventListener('keydown', (e) => {
-    // Avoid system keys like F12
-    if (e.key === 'F12') return;
+// window.addEventListener('wheel', (e) => {
+//     // roomId yahan variable hona chahiye jo aapke session ka hai
+//     socket.emit("viewer-control", { 
+//         roomId: currentRoomId, 
+//         type: "mouse-scroll", 
+//         data: { delta: e.deltaY * -1 } // Invert to match OS behavior
+//     });
+// }, { passive: false });
+// window.addEventListener('contextmenu', (e) => {
+//     e.preventDefault(); // Browser ka apna menu rokne ke liye
+//     socket.emit("viewer-control", { 
+//         roomId: currentRoomId, 
+//         type: "mouse-click", 
+//         data: { button: 'right' } 
+//     });
+// });
+// window.addEventListener('keydown', (e) => {
+//     // Avoid system keys like F12
+//     if (e.key === 'F12') return;
 
-    socket.emit("viewer-control", { 
-        roomId: currentRoomId, 
-        type: "key-press", 
-        data: { key: e.key } 
+//     socket.emit("viewer-control", { 
+//         roomId: currentRoomId, 
+//         type: "key-press", 
+//         data: { key: e.key } 
+//     });
+// });
+
+
+window.addEventListener('keydown', (e) => {
+    if (!currentRoom) return;
+    
+    socket.emit("viewer-control", {
+        roomId: currentRoom,
+        type: "key-direct",
+        data: {
+            key: e.key,
+            ctrl: e.ctrlKey,
+            alt: e.altKey,
+            shift: e.shiftKey
+        }
     });
-});
-  </script>
+}); // <--- Sirf ek bracket aur semicolon yahan hona chahiye
+
+</script>
 </body>
 </html>
 

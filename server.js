@@ -145,6 +145,48 @@ app.post('/api/register', async (req, res) => {
 });
 
 // ✅ NEW & SECURE LOGIN API
+// app.post('/api/login', async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const user = await User.findOne({ email });
+
+//     if (!user || !(await user.comparePassword(password))) {
+//       return res.status(401).json({ success: false, message: "Invalid credentials." });
+//     }
+
+//     if (user.blocked) {
+//       return res.status(403).json({ success: false, message: "Your account is blocked." });
+//     }
+
+//     req.session.regenerate((err) => {
+//       if (err) return res.status(500).json({ success: false });
+
+//       // 🛑 CHANGE: Abhi 'user' ko khali rakhein, sirf 'tempUser' fill karein
+//       req.session.tempUser = {
+//         id: user._id,
+//         email: user.email,
+//         role: user.role
+//       };
+      
+//       req.session.user = null; 
+
+//       if (user.role === 'admin') {
+//         req.session.user = req.session.tempUser; // Admin ko direct access de sakte hain
+//         return res.json({ success: true, redirect: "/admin" });
+//       }
+
+//       if (!user.faceDescriptor || user.faceDescriptor.length === 0) {
+//         return res.json({ success: true, redirect: "/face-auth" });
+//       }
+
+//       // Agar sab theek hai toh verification par bhejein
+//       return res.json({ success: true, redirect: "/face-verify" });
+//     });
+
+//   } catch (err) {
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// });
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -161,33 +203,33 @@ app.post('/api/login', async (req, res) => {
     req.session.regenerate((err) => {
       if (err) return res.status(500).json({ success: false });
 
-      // 🛑 CHANGE: Abhi 'user' ko khali rakhein, sirf 'tempUser' fill karein
-      req.session.tempUser = {
+      // ✅ STEP 1: Session data taiyar karein
+      const sessionData = {
         id: user._id,
         email: user.email,
         role: user.role
       };
-      
-      req.session.user = null; 
 
+      // ✅ STEP 2: BYPASS LOGIC (Yahan change hai)
+      // Hum tempUser ke bajaye direct req.session.user set kar rahe hain
+      req.session.user = sessionData; 
+      req.session.tempUser = null; // tempUser ki ab zaroorat nahi
+
+      // ✅ STEP 3: Redirection Logic
       if (user.role === 'admin') {
-        req.session.user = req.session.tempUser; // Admin ko direct access de sakte hain
         return res.json({ success: true, redirect: "/admin" });
       }
 
-      if (!user.faceDescriptor || user.faceDescriptor.length === 0) {
-        return res.json({ success: true, redirect: "/face-auth" });
-      }
-
-      // Agar sab theek hai toh verification par bhejein
-      return res.json({ success: true, redirect: "/face-verify" });
+      // User ko direct dashboard ya session create karne wale page par bhej dein
+      // Pehle ye "/face-verify" par ja raha tha, ab bypass ho gaya
+      console.log(`⚠️ Bypass: ${user.email} logged in without Face Auth`);
+      return res.json({ success: true, redirect: "/create-session" }); 
     });
 
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
-
 // Logout
 app.post('/api/logout', (req, res) => {
   req.session.destroy(() => res.json({ success: true, message: "Logged out successfully!" }));
@@ -507,18 +549,13 @@ io.on("connection", (socket) => {
     socket.on("signal", ({ to, from, data }) => io.to(to).emit("signal", { from, data }));
 
     // --- REMOTE CONTROL BRIDGE (The Proper Way) ---
-    socket.on("viewer-control", ({ roomId, type, data }) => {
-        if (!roomId) return;
-
-        // Ye line signal ko us room ke Host aur Agent dono ko forward kar degi
-        // Ab Host ka PC khud faisla karega mouse kaise hilana hai
-        io.to(roomId).emit("python-control", { type, data });
-
-        // Visual pointer (Laser) ke liye
-        socket.to(roomId).emit("host-receive-control", { type, data });
-        
-        console.log(`📡 Signal Forwarded: ${type} to Room ${roomId}`);
-    });
+// server.js mein viewer-control wala part sirf ye rakhein:
+socket.on("viewer-control", ({ roomId, type, data }) => {
+    if (!roomId) return;
+    // Direct Host Agent ko bhejain
+    io.to(roomId).emit("python-control", { type, data });
+    console.log(`Forwarding ${type} to Agent in Room ${roomId}`);
+});
 
     // --- DISCONNECT & END SESSION ---
     socket.on("endSession", ({ roomId }) => {
