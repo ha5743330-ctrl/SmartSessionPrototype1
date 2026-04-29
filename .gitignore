@@ -1,8 +1,41 @@
-tfenv/
+# --- Environments ---
+.env
 venv/
 env/
-.env
+tfenv/
+bin/
+lib/
+share/
+Include/
+*.pyc
+__pycache__/
+
+# --- Node.js ---
 node_modules/
+package-lock.json
+npm-debug.log*
+
+# --- Heavy ML Models (Crucial) ---
+# Inhein ignore karna zaroori hai kyunke ye bohot heavy hain
+models/*.json
+models/*-shard*
 shape_predictor_68_face_landmarks.dat
+
+# --- Media & Documents (Heavy Files) ---
+media/*.mp4
+media/*.pptx
+media/*.docx
+media/*.zip
+public/images/*.avif
+public/images/*.zip
+
+# --- User Uploads (Keep folder, ignore files) ---
+uploads/*
+!uploads/.gitkeep
 uploads/faces/*
 !uploads/faces/.gitkeep
+
+# --- IDE & Misc ---
+.vscode/
+.DS_Store
+Thumbs.db

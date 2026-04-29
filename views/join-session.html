@@ -408,7 +408,6 @@ video {
 
   <script>
 // State section mein add karein
-let lastSend = 0;                                     
     // ===== FULL POLISHED REMOTE VIEWER SCRIPT =====
 
 // Socket Init with auto-reconnect
@@ -472,71 +471,124 @@ joinBtn.addEventListener("click", async () => {
   }
 });
 
-// ===== ENHANCED REAL-MOUSE DRIVER LOGIC =====
+// ===== PROFESSIONAL MOUSE CONTROL SYSTEM =====
+
 const overlay = document.getElementById("control-overlay");
+
+let lastSend = 0;
+let isDragging = false;
+let pressedButton = null;
 let mouseTimer = null;
 
-// Helper: Safety release function
-const safetyRelease = () => {
-    if (mouseTimer) clearTimeout(mouseTimer);
-    sendControlEvent("mouse-up", { button: 'left' });
-    sendControlEvent("mouse-up", { button: 'right' });
-};
-
-// 1. Precise Movement (Driver Grade)
+// ===== 1. MOUSE MOVE (SMART + DRAG SUPPORT) =====
 overlay.addEventListener("mousemove", (e) => {
-    if (!currentRoom || !isRemoteEnabled) return;
+    if (!currentRoom || (!isRemoteEnabled && !laserEnabled)) return;
 
     const rect = overlay.getBoundingClientRect();
     const x = e.offsetX / rect.width;
     const y = e.offsetY / rect.height;
 
     const now = Date.now();
-    if (now - lastSend > 10) { // 100Hz Polling Rate
-        sendControlEvent("mouse-move", { x, y });
+
+    // Smooth 60 FPS throttling
+    if (now - lastSend > 16) {
+        sendControlEvent(
+            isRemoteEnabled
+                ? (isDragging ? "mouse-drag" : "mouse-move")
+                : "pointer-move",
+            { x, y }
+        );
+
         lastSend = now;
     }
 });
 
-// 2. Hardware-Level Down (Latch)
-overlay.addEventListener('mousedown', (e) => {
+
+// ===== 2. MOUSE DOWN (DRAG START) =====
+overlay.addEventListener("mousedown", (e) => {
     if (!isRemoteEnabled) return;
-    
+
     const rect = overlay.getBoundingClientRect();
-    const buttonType = (e.button === 2) ? 'right' : 'left';
+    const x = e.offsetX / rect.width;
+    const y = e.offsetY / rect.height;
 
-    // Start 10s Safety Latch (Professional Standard)
-    if(mouseTimer) clearTimeout(mouseTimer);
-    mouseTimer = setTimeout(safetyRelease, 10000);
+    pressedButton = (e.button === 2) ? "right" : "left";
+    isDragging = true;
 
-    sendControlEvent("mouse-down", { 
-        x: e.offsetX / rect.width, 
-        y: e.offsetY / rect.height, 
-        button: buttonType 
+    // Safety auto release
+    if (mouseTimer) clearTimeout(mouseTimer);
+    mouseTimer = setTimeout(() => {
+        sendControlEvent("mouse-up", { button: pressedButton });
+        isDragging = false;
+        pressedButton = null;
+    }, 8000);
+
+    sendControlEvent("mouse-down", { x, y, button: pressedButton });
+});
+
+
+// ===== 3. MOUSE UP (DRAG END) =====
+overlay.addEventListener("mouseup", (e) => {
+    if (!isRemoteEnabled) return;
+
+    const rect = overlay.getBoundingClientRect();
+    const x = e.offsetX / rect.width;
+    const y = e.offsetY / rect.height;
+
+    if (mouseTimer) clearTimeout(mouseTimer);
+
+    const buttonType = (e.button === 2) ? "right" : "left";
+
+    sendControlEvent("mouse-up", { x, y, button: buttonType });
+
+    isDragging = false;
+    pressedButton = null;
+});
+
+
+// ===== 4. DOUBLE CLICK =====
+overlay.addEventListener("dblclick", (e) => {
+    if (!isRemoteEnabled) return;
+
+    const rect = overlay.getBoundingClientRect();
+
+    sendControlEvent("mouse-click", {
+        x: e.offsetX / rect.width,
+        y: e.offsetY / rect.height,
+        action: "double-click"
     });
 });
 
-// 3. Hardware-Level Up (Release)
-overlay.addEventListener('mouseup', (e) => {
+
+// ===== 5. MOUSE LEAVE (SAFE RELEASE) =====
+overlay.addEventListener("mouseleave", () => {
     if (!isRemoteEnabled) return;
-    if(mouseTimer) clearTimeout(mouseTimer);
-    
-    const buttonType = (e.button === 2) ? 'right' : 'left';
-    sendControlEvent("mouse-up", { button: buttonType });
+
+    if (mouseTimer) clearTimeout(mouseTimer);
+
+    if (pressedButton) {
+        sendControlEvent("mouse-up", { button: pressedButton });
+        pressedButton = null;
+    }
+
+    isDragging = false;
 });
 
-// 4. Critical Safety: Window Blur & Mouse Leave
-// Agar user Alt+Tab kare ya mouse area se bahar jaye to hardware release bhejain
-window.addEventListener('blur', safetyRelease);
-overlay.addEventListener('mouseleave', safetyRelease);
 
-// 5. Native Scroll
-overlay.addEventListener('wheel', (e) => {
+// ===== 6. SCROLL =====
+overlay.addEventListener("wheel", (e) => {
     if (!isRemoteEnabled) return;
+
     e.preventDefault();
-    sendControlEvent("mouse-scroll", { delta: e.deltaY * -1 });
+
+    sendControlEvent("mouse-scroll", {
+        delta: e.deltaY
+    });
+
 }, { passive: false });
 
+
+// ===== 7. DISABLE RIGHT CLICK MENU =====
 overlay.addEventListener("contextmenu", (e) => e.preventDefault());
 function updateStatus() {
     // Ye line add karein
