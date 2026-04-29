@@ -145,48 +145,6 @@ app.post('/api/register', async (req, res) => {
 });
 
 // ✅ NEW & SECURE LOGIN API
-// app.post('/api/login', async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     const user = await User.findOne({ email });
-
-//     if (!user || !(await user.comparePassword(password))) {
-//       return res.status(401).json({ success: false, message: "Invalid credentials." });
-//     }
-
-//     if (user.blocked) {
-//       return res.status(403).json({ success: false, message: "Your account is blocked." });
-//     }
-
-//     req.session.regenerate((err) => {
-//       if (err) return res.status(500).json({ success: false });
-
-//       // 🛑 CHANGE: Abhi 'user' ko khali rakhein, sirf 'tempUser' fill karein
-//       req.session.tempUser = {
-//         id: user._id,
-//         email: user.email,
-//         role: user.role
-//       };
-      
-//       req.session.user = null; 
-
-//       if (user.role === 'admin') {
-//         req.session.user = req.session.tempUser; // Admin ko direct access de sakte hain
-//         return res.json({ success: true, redirect: "/admin" });
-//       }
-
-//       if (!user.faceDescriptor || user.faceDescriptor.length === 0) {
-//         return res.json({ success: true, redirect: "/face-auth" });
-//       }
-
-//       // Agar sab theek hai toh verification par bhejein
-//       return res.json({ success: true, redirect: "/face-verify" });
-//     });
-
-//   } catch (err) {
-//     res.status(500).json({ success: false, message: err.message });
-//   }
-// });
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -203,33 +161,75 @@ app.post('/api/login', async (req, res) => {
     req.session.regenerate((err) => {
       if (err) return res.status(500).json({ success: false });
 
-      // ✅ STEP 1: Session data taiyar karein
-      const sessionData = {
+      // 🛑 CHANGE: Abhi 'user' ko khali rakhein, sirf 'tempUser' fill karein
+      req.session.tempUser = {
         id: user._id,
         email: user.email,
         role: user.role
       };
+      
+      req.session.user = null; 
 
-      // ✅ STEP 2: BYPASS LOGIC (Yahan change hai)
-      // Hum tempUser ke bajaye direct req.session.user set kar rahe hain
-      req.session.user = sessionData; 
-      req.session.tempUser = null; // tempUser ki ab zaroorat nahi
-
-      // ✅ STEP 3: Redirection Logic
       if (user.role === 'admin') {
+        req.session.user = req.session.tempUser; // Admin ko direct access de sakte hain
         return res.json({ success: true, redirect: "/admin" });
       }
 
-      // User ko direct dashboard ya session create karne wale page par bhej dein
-      // Pehle ye "/face-verify" par ja raha tha, ab bypass ho gaya
-      console.log(`⚠️ Bypass: ${user.email} logged in without Face Auth`);
-      return res.json({ success: true, redirect: "/create-session" }); 
+      if (!user.faceDescriptor || user.faceDescriptor.length === 0) {
+        return res.json({ success: true, redirect: "/face-auth" });
+      }
+
+      // Agar sab theek hai toh verification par bhejein
+      return res.json({ success: true, redirect: "/face-verify" });
     });
 
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+  res.status(500).json({ success: false, message: err.message });
   }
 });
+// app.post('/api/login', async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const user = await User.findOne({ email });
+
+//     if (!user || !(await user.comparePassword(password))) {
+//       return res.status(401).json({ success: false, message: "Invalid credentials." });
+//     }
+
+//     if (user.blocked) {
+//       return res.status(403).json({ success: false, message: "Your account is blocked." });
+//     }
+
+//     req.session.regenerate((err) => {
+//       if (err) return res.status(500).json({ success: false });
+
+//       // ✅ STEP 1: Session data taiyar karein
+//       const sessionData = {
+//         id: user._id,
+//         email: user.email,
+//         role: user.role
+//       };
+
+//       // ✅ STEP 2: BYPASS LOGIC (Yahan change hai)
+//       // Hum tempUser ke bajaye direct req.session.user set kar rahe hain
+//       req.session.user = sessionData; 
+//       req.session.tempUser = null; // tempUser ki ab zaroorat nahi
+
+//       // ✅ STEP 3: Redirection Logic
+//       if (user.role === 'admin') {
+//         return res.json({ success: true, redirect: "/admin" });
+//       }
+
+//       // User ko direct dashboard ya session create karne wale page par bhej dein
+//       // Pehle ye "/face-verify" par ja raha tha, ab bypass ho gaya
+//       console.log(`⚠️ Bypass: ${user.email} logged in without Face Auth`);
+//       return res.json({ success: true, redirect: "/create-session" }); 
+//     });
+
+//   } catch (err) {
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// });
 // Logout
 app.post('/api/logout', (req, res) => {
   req.session.destroy(() => res.json({ success: true, message: "Logged out successfully!" }));
