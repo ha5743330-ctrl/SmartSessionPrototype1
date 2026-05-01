@@ -4,7 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "author": "",
   "license": "ISC",
@@ -44,5 +45,8 @@
   "bugs": {
     "url": "https://github.com/ha5743330-ctrl/SmartSessionPrototype1/issues"
   },
-  "homepage": "https://github.com/ha5743330-ctrl/SmartSessionPrototype1#readme"
+  "homepage": "https://github.com/ha5743330-ctrl/SmartSessionPrototype1#readme",
+  "overrides": {
+    "file-type": "^16.5.4"
+  }
 }

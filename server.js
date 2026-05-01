@@ -19,6 +19,8 @@ const getFaceDistance = (desc1, desc2) => {
   if (!desc1 || !desc2) return 1.0;
   return Math.sqrt(desc1.reduce((sum, val, i) => sum + Math.pow(val - desc2[i], 2), 0));
 };
+const app = express();
+
 
 // ============================
 // Models
@@ -31,13 +33,13 @@ const Report = require('./models/Report');
 // ============================
 // App Initialization
 // ============================
-const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] },
 });
 const isLoggedIn = require('./middleware/isLoggedIn'); // File name matches exactly
-
+// ---------------------------------
+app.set('trust proxy', 1);
 // ============================
 // Middleware
 // ============================
@@ -145,47 +147,72 @@ app.post('/api/register', async (req, res) => {
 });
 
 // ✅ NEW & SECURE LOGIN API
-app.post('/api/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
 
-    if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ success: false, message: "Invalid credentials." });
+// 1. Sirf Login ke liye sakht limiter (Brute-force se bachne ke liye)
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 Minutes
+    max: 10, // Max 10 attempts
+    message: { success: false, message: "Zyada login attempts ho gaye hain, 15 min baad try karein." },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// 2. Login Route
+app.post('/api/login', loginLimiter, async (req, res) => {
+    try {
+        // NoSQL Injection se bachne ke liye body ko sanitize karein
+        const email = String(req.body.email); 
+        const password = String(req.body.password);
+
+        // User dhundein
+        const user = await User.findOne({ email });
+
+        // Security Tip: Generic message dein taake hacker ko pata na chale email sahi hai ya password
+        if (!user || !(await user.comparePassword(password))) {
+            return res.status(401).json({ success: false, message: "Email ya password darust nahi hai." });
+        }
+
+        // Account Block check
+        if (user.blocked) {
+            return res.status(403).json({ success: false, message: "Aapka account block kar diya gaya hai." });
+        }
+
+        // Session Fixation Attack se bachne ke liye session regenerate karein
+        req.session.regenerate((err) => {
+            if (err) {
+                return res.status(500).json({ success: false, message: "Session error." });
+            }
+
+            // Temp user data set karein (2FA ya Face Auth ke liye)
+            req.session.tempUser = {
+                id: user._id,
+                email: user.email,
+                role: user.role
+            };
+            
+            req.session.user = null; // Final user session abhi khali rakhein
+
+            // Admin Logic
+            if (user.role === 'admin') {
+                req.session.user = req.session.tempUser; 
+                return res.json({ success: true, redirect: "/admin" });
+            }
+
+            // Face Auth Logic
+            if (!user.faceDescriptor || user.faceDescriptor.length === 0) {
+                return res.json({ success: true, redirect: "/face-auth" });
+            }
+
+            // Verification Flow
+            return res.json({ success: true, redirect: "/face-verify" });
+        });
+
+    } catch (err) {
+        console.error("Login Error:", err);
+        res.status(500).json({ success: false, message: "Server mein koi masla aa gaya hai." });
     }
-
-    if (user.blocked) {
-      return res.status(403).json({ success: false, message: "Your account is blocked." });
-    }
-
-    req.session.regenerate((err) => {
-      if (err) return res.status(500).json({ success: false });
-
-      // 🛑 CHANGE: Abhi 'user' ko khali rakhein, sirf 'tempUser' fill karein
-      req.session.tempUser = {
-        id: user._id,
-        email: user.email,
-        role: user.role
-      };
-      
-      req.session.user = null; 
-
-      if (user.role === 'admin') {
-        req.session.user = req.session.tempUser; // Admin ko direct access de sakte hain
-        return res.json({ success: true, redirect: "/admin" });
-      }
-
-      if (!user.faceDescriptor || user.faceDescriptor.length === 0) {
-        return res.json({ success: true, redirect: "/face-auth" });
-      }
-
-      // Agar sab theek hai toh verification par bhejein
-      return res.json({ success: true, redirect: "/face-verify" });
-    });
-
-  } catch (err) {
-  res.status(500).json({ success: false, message: err.message });
-  }
 });
 // app.post('/api/login', async (req, res) => {
 //   try {

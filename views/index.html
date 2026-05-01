@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Session - Home</title>
   <link rel="stylesheet" href="/style.css">
   <style>
@@ -25,26 +26,74 @@ body {
     overflow-x: hidden;
     /* Purani image hata di gayi hai */
 }
-
-
-
-/* Radiant glow effect like Ngrok */
-.bg-glow {
+/* Background Grid (Ngrok Style) */
+body::before {
+    content: "";
     position: fixed;
     top: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at 50% -20%, rgba(0, 102, 255, 0.15), transparent 70%);
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 45px 45px;
+    z-index: -1;
+    pointer-events: none;
+    /* Isse grid center se fade out hogi */
+    mask-image: radial-gradient(circle at center, black, transparent 90%);
+}
+
+
+body::after {
+    content: "";
+    position: absolute;
+    top: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(50, 145, 255, 0.1) 0%, transparent 70%);
+    filter: blur(60px);
     pointer-events: none;
     z-index: -1;
+}
+
+/* Card centering and polish */
+.auth-container, .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 40px;
+    width: 90%;
+    max-width: 400px; /* Card ko center mein compact rakhne ke liye */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    z-index: 10;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+/* Input Fields Polish */
+input {
+    width: 100%;
+    background: #111111;
+    border: 1px solid var(--border-color);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-sizing: border-box; /* Centering align karne ke liye zaroori hai */
+    margin-bottom: 20px;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(50, 145, 255, 0.1);
 }
 #top-header {
     position: fixed;
     top: 0;
     width: 100%;
-    background-color: #101699;
+    background-color: #991010;
     color: #fff;
     padding: 10px 0;
     text-align: center;
@@ -182,6 +231,83 @@ body {
     .menu-icon.active div:nth-child(3) {
       transform: rotate(-45deg) translateY(-8px);
     }
+ /* --- 1. Dono Headers ki Transparency (Jab ON ho) --- */
+body.glass-enabled #top-header {
+    background-color: rgba(16, 22, 153, 0.2) !important; /* Transparent Blue */
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.glass-enabled nav {
+    background: rgba(255, 255, 255, 0.1) !important; /* Transparent White/Glass */
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Links color change taake dark background par nazar aayein */
+body.glass-enabled nav ul li a {
+    color: #ffffff !important;
+}
+
+/* --- 2. Switch Styling --- */
+.main-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 20px;
+    z-index: 100;
+}
+
+.mode-text {
+    font-size: 10px;
+    font-weight: bold;
+    color: #101699;
+    letter-spacing: 1px;
+}
+
+body.glass-enabled .mode-text {
+    color: #00ffcc; /* Active mode mein text color change */
+}
+
+.main-switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 20px;
+}
+
+.main-switch input { opacity: 0; width: 0; height: 0; }
+
+.main-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.main-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px; width: 14px;
+    left: 3px; bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .main-slider { background-color: #00ffcc; }
+input:checked + .main-slider:before { transform: translateX(18px); }
+
+/* Content padding fix taake hero text nav ke niche na ho */
+.hero {
+    padding-top: 130px !important;
+}
+/* --- Fix for 'Content Hiding Under Nav' --- */
+.hero {
+    padding-top: 120px !important; /* Top Header (35px) + Nav (~70px) + Extra space */
+}
     /* ---------- HERO ---------- */
     .hero {
       position: relative;
@@ -622,15 +748,7 @@ ul{
 }
 
 
-    #tsparticles {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1; /* BACKGROUND */
-    pointer-events: none; /* content clickable rahe */
-}
+   
 
   </style>
 </head>
@@ -640,20 +758,30 @@ ul{
     
     <!-- Aapka baaki sara code (Nav, Container, etc.) yahan rahega -->
   <!-- ===== TOP HEADER ===== -->
-<div id="top-header" style="background-color: #101699; color: #fff; text-align: center;  font-size: 14px;">
+<div id="top-header" style="background-color: #d10505; color: #fff; text-align: center;  font-size: 14px;">
     Welcome to Smart Session - Fast, Secure & Reliable Remote Access!
 </div>
 
 <!-- ===== NAVBAR SECTION ===== -->
+ 
 <div id="navbar-section">
   <nav>
     <div class="logo">
-      <img src="/images/logo1.png" alt="SmartSession Logo" class="logo-img">
+        <img src="/images/logo1.png" alt="SmartSession Logo" class="logo-img">
     </div>
+
+    <!-- Naya Transparent Toggle Switch -->
+    <!-- Navbar ke andar Toggle Button -->
+<div class="main-toggle-wrapper">
+    <span class="mode-text"></span>
+    <label class="main-switch">
+        <input type="checkbox" id="universalHeaderToggle">
+        <span class="main-slider"></span>
+    </label>
+</div>
+
     <div class="menu-icon" id="menu-icon">
-      <div></div>
-      <div></div>
-      <div></div>
+        <div></div><div></div><div></div>
     </div>
     <ul id="nav-links">
       <li><a href="/">Home</a></li>
@@ -878,6 +1006,16 @@ window.addEventListener('scroll', () => {
         navLinks.classList.toggle('active');
         menuIcon.classList.toggle('active');
     });
+const universalToggle = document.getElementById('universalHeaderToggle');
+
+universalToggle.addEventListener('change', function() {
+    if (this.checked) {
+        // Body par class lagane se CSS ke rules activate ho jayenge
+        document.body.classList.add('glass-enabled');
+    } else {
+        document.body.classList.remove('glass-enabled');
+    }
+});
 </script>
 
 

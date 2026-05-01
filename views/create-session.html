@@ -105,7 +105,83 @@ body::after {
     .menu-icon.active div:nth-child(2) { opacity: 0; }
     .menu-icon.active div:nth-child(3) { transform: rotate(-45deg) translateY(-8px); }
       nav ul li a:hover, nav ul li a.active { color: var(--white); border-bottom: 2px solid var(--accent-red); }
- 
+ /* --- Glass Mode Active Styles --- */
+body.glass-enabled nav, 
+body.glass-enabled #top-header {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Glass mode mein links ka color white karna zaroori hai */
+body.glass-enabled nav ul li a {
+  color: #ffffff !important;
+}
+
+body.glass-enabled .menu-icon div {
+  background-color: #ffffff; /* Mobile menu icon color in glass mode */
+}
+
+/* --- Toggle Switch Styling --- */
+.glass-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  margin-right: 20px;
+  z-index: 100;
+}
+
+.glass-label {
+  font-size: 10px;
+  font-weight: bold;
+  color: #101699;
+  letter-spacing: 1px;
+}
+
+body.glass-enabled .glass-label { color: #00ffcc; }
+
+.switch-container {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
+}
+
+.switch-container input { opacity: 0; width: 0; height: 0; }
+
+.slider-round {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider-round:before {
+  position: absolute;
+  content: "";
+  height: 14px; width: 14px;
+  left: 3px; bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider-round { background-color: #00ffcc; }
+input:checked + .slider-round:before { transform: translateX(18px); }
+
+/* Padding fix taake content hide na ho */
+.hero, main {
+  padding-top: 100px !important;
+}
+
+@media (max-width: 900px) {
+  .glass-toggle-wrapper { margin-right: 15px; }
+}
         /* --- Main Layout --- */
         .dashboard-wrapper {
             flex: 1;
@@ -281,23 +357,34 @@ body::after {
 
      <!-- Navbar -->
   <nav>
-    <div class="logo">
-      <img src="/images/logo1.png" class="logo-img">
-    </div>
-    <div class="menu-icon" id="menu-icon">
-      <div></div><div></div><div></div>
-    </div>
-    <ul id="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/signin">Sign In</a></li>
-      <li><a href="/create-session">Start Session</a></li>
-      <li><a href="/join-session">Join Session</a></li>
-      <li><a href="/view-sessions">View Sessions</a></li>
-      <li><a href="/reports">Reports</a></li>
-      <li><a href="/settings" class="nav-settings">Settings</a></li>
-      <li><a href="#" id="logoutBtn">Logout</a></li>
-    </ul>
-  </nav>
+  <div class="logo">
+    <img src="/images/logo1.png" class="logo-img">
+  </div>
+
+  <!-- Single Toggle Button for Both -->
+  <div class="glass-toggle-wrapper">
+    <span class="glass-label"></span>
+    <label class="switch-container">
+      <input type="checkbox" id="mainGlassToggle">
+      <span class="slider-round"></span>
+    </label>
+  </div>
+
+  <div class="menu-icon" id="menu-icon">
+    <div></div><div></div><div></div>
+  </div>
+  
+  <ul id="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/signin">Sign In</a></li>
+    <li><a href="/create-session">Start Session</a></li>
+    <li><a href="/join-session">Join Session</a></li>
+    <li><a href="/view-sessions">View Sessions</a></li>
+    <li><a href="/reports">Reports</a></li>
+    <li><a href="/settings" class="nav-settings">Settings</a></li>
+    <li><a href="#" id="logoutBtn">Logout</a></li>
+  </ul>
+</nav>
     <div class="dashboard-wrapper">
         <div class="container">
             <h1><i class="fas fa-broadcast-tower"></i> Host Control Center</h1>
@@ -340,20 +427,9 @@ body::after {
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/signaling.js"></script>
 
-<!-- <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script> -->
 
 <script>
-    // // tsparticles
-    // tsParticles.load("tsparticles", {
-    //     background: { color: "#02022A" },
-    //     particles: {
-    //         number: { value: 10 },
-    //         size: { value: 80 },
-    //         opacity: { value: 0.15 },
-    //         shape: { type: "circle" },
-    //         move: { enable: false }
-    //     }
-    // });
+    
 // Ngrok-style interactive background
 document.addEventListener('mousemove', (e) => {
     const x = (e.clientX / window.innerWidth) * 100;
@@ -543,12 +619,25 @@ document.addEventListener('mousemove', (e) => {
         }
     };
 
-    const menuIcon = document.getElementById('menu-icon');
-    const navLinks = document.getElementById('nav-links');
-    menuIcon.addEventListener('click', () => {
-        navLinks.classList.toggle('active');
-        menuIcon.classList.toggle('active');
-    });
+   // Master Toggle for Glass Mode
+const mainGlassToggle = document.getElementById('mainGlassToggle');
+
+mainGlassToggle.addEventListener('change', function() {
+    if (this.checked) {
+        document.body.classList.add('glass-enabled');
+    } else {
+        document.body.classList.remove('glass-enabled');
+    }
+});
+
+// Aapka existing Menu Icon aur Logout code yahan niche rahega...
+const menuIcon = document.getElementById('menu-icon');
+const navLinks = document.getElementById('nav-links');
+menuIcon.addEventListener('click', () => {
+    navLinks.classList.toggle('active');
+    menuIcon.classList.toggle('active');
+});
+    
 
  // Variable ko top par define karein
 let currentSessionCode = null; 
@@ -635,6 +724,7 @@ const savedCode = localStorage.getItem('activeSession');
             console.error("Error switching screen:", err);
         }
     });
+    
 </script>
 </body>
 </html>

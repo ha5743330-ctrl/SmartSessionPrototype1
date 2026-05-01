@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Join Smart Session</title>
   <link rel="stylesheet" href="/style.css">
 
@@ -76,7 +77,7 @@ input:focus {
     border-color: var(--accent-blue);
     background: #000;
 }
-    nav {
+nav {
       position: fixed;
       top: 0;
       width: 100%;
@@ -111,9 +112,113 @@ input:focus {
       border-radius: 2px;
       transition: 0.3s;
     }
+     @media (max-width: 900px) {
+      nav ul {
+        position: absolute;
+        top: 65px;
+        left: 0;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        flex-direction: column;
+        align-items: center;
+        max-height: 0;
+        overflow: hidden;
+      }
+      nav ul.active { max-height: 500px; padding: 10px 0; }
+      nav ul li { margin: 15px 0; }
+      .menu-icon { display: flex; margin: 0px 40px 0px 0px; }
+    }
+    .menu-icon.active div:nth-child(1) { transform: rotate(45deg) translateY(8px); }
+    .menu-icon.active div:nth-child(2) { opacity: 0; }
+    .menu-icon.active div:nth-child(3) { transform: rotate(-45deg) translateY(-8px); }
+      nav ul li a:hover, nav ul li a.active { color: var(--white); border-bottom: 2px solid var(--accent-red); }
+ /* --- Glass Mode Active Styles --- */
+body.glass-enabled nav, 
+body.glass-enabled #top-header {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
 
-/* Modern Glassmorphism Theme */
+/* Glass mode mein links ka color white karna zaroori hai */
+body.glass-enabled nav ul li a {
+  color: #ffffff !important;
+}
 
+body.glass-enabled .menu-icon div {
+  background-color: #ffffff; /* Mobile menu icon color in glass mode */
+}
+
+/* --- Toggle Switch Styling --- */
+.glass-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  margin-right: 20px;
+  z-index: 100;
+}
+
+.glass-label {
+  font-size: 10px;
+  font-weight: bold;
+  color: #101699;
+  letter-spacing: 1px;
+}
+
+body.glass-enabled .glass-label { color: #00ffcc; }
+
+.switch-container {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
+}
+
+.switch-container input { opacity: 0; width: 0; height: 0; }
+
+.slider-round {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider-round:before {
+  position: absolute;
+  content: "";
+  height: 14px; width: 14px;
+  left: 3px; bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider-round { background-color: #00ffcc; }
+input:checked + .slider-round:before { transform: translateX(18px); }
+
+/* Padding fix taake content hide na ho */
+.hero, main {
+  padding-top: 100px !important;
+}
+
+@media (max-width: 900px) {
+  .glass-toggle-wrapper { margin-right: 15px; }
+}  
+  @media (max-width: 480px) {
+    .button-group {
+        grid-template-columns: repeat(2, 1fr); /* Mobile par 2 buttons per row */
+    }
+}
+@media (max-width: 500px) {
+    .button-group {
+        grid-template-columns: repeat(2, 1fr); /* Mobile par 3 ki jagah 2 buttons ek line mein */
+    }
+}
 
 .container {
     background: rgba(255, 255, 255, 0.03);
@@ -267,10 +372,7 @@ video {
     100% { opacity: 0.2; }
 }
 
-@media (max-width: 550px) {
-    .button-group { grid-template-columns: 1fr 1fr; }
-    .container { padding: 20px; margin-top: 40px; }
-}
+
 
     footer {
   margin-top: auto;
@@ -338,27 +440,15 @@ video {
 }
 
 
-    @media (max-width: 900px) {
-      nav ul {
-        position: absolute;
-        top: 65px;
-        left: 0;
-        width: 100%;
-        background: rgba(0, 0, 0, 0.9);
-        flex-direction: column;
-        align-items: center;
-        max-height: 0;
-        overflow: hidden;
-      }
-      nav ul.active { max-height: 500px; padding: 10px 0; }
-      nav ul li { margin: 15px 0; }
-      .menu-icon { display: flex; margin: 0px 40px 0px 0px; }
-    }
-    .menu-icon.active div:nth-child(1) { transform: rotate(45deg) translateY(8px); }
-    .menu-icon.active div:nth-child(2) { opacity: 0; }
-    .menu-icon.active div:nth-child(3) { transform: rotate(-45deg) translateY(-8px); }
-      nav ul li a:hover, nav ul li a.active { color: var(--white); border-bottom: 2px solid var(--accent-red); }
-      /* Fullscreen mode mein container ko poori screen pe phailane ke liye */
+    
+
+
+/* Padding fix taake content hide na ho */
+.hero, main {
+  padding-top: 100px !important;
+}
+
+
 #player:fullscreen {
     width: 100vw;
     height: 100vh;
@@ -381,15 +471,7 @@ video {
     z-index: 9999;
 }
 
-        #tsparticles {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1; /* BACKGROUND */
-    pointer-events: none; /* content clickable rahe */
-}
+
   </style>
 </head>
 
@@ -397,23 +479,34 @@ video {
 
   <!-- Navbar -->
   <nav>
-    <div class="logo">
-      <img src="/images/logo1.png" class="logo-img">
-    </div>
-    <div class="menu-icon" id="menu-icon">
-      <div></div><div></div><div></div>
-    </div>
-    <ul id="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/signin">Sign In</a></li>
-      <li><a href="/create-session">Start Session</a></li>
-      <li><a href="/join-session">Join Session</a></li>
-      <li><a href="/view-sessions">View Sessions</a></li>
-      <li><a href="/reports">Reports</a></li>
-      <li><a href="/settings" class="nav-settings">Settings</a></li>
-      <li><a href="#" id="logoutBtn">Logout</a></li>
-    </ul>
-  </nav>
+  <div class="logo">
+    <img src="/images/logo1.png" class="logo-img">
+  </div>
+
+  <!-- Single Toggle Button for Both -->
+  <div class="glass-toggle-wrapper">
+    <span class="glass-label"></span>
+    <label class="switch-container">
+      <input type="checkbox" id="mainGlassToggle">
+      <span class="slider-round"></span>
+    </label>
+  </div>
+
+  <div class="menu-icon" id="menu-icon">
+    <div></div><div></div><div></div>
+  </div>
+  
+  <ul id="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/signin">Sign In</a></li>
+    <li><a href="/create-session">Start Session</a></li>
+    <li><a href="/join-session">Join Session</a></li>
+    <li><a href="/view-sessions">View Sessions</a></li>
+    <li><a href="/reports">Reports</a></li>
+    <li><a href="/settings" class="nav-settings">Settings</a></li>
+    <li><a href="#" id="logoutBtn">Logout</a></li>
+  </ul>
+</nav>
 
   <!-- Join Container -->
 <div class="container">
@@ -456,7 +549,6 @@ video {
   <!-- Scripts -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/signaling.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
 
 
   <script>
@@ -753,13 +845,23 @@ document.getElementById("logoutBtn").onclick = async () => {
   }
 };
 
-// ===== NAVBAR =====
-const menuIcon = document.getElementById("menu-icon");
-const navLinks = document.getElementById("nav-links");
+   // Master Toggle for Glass Mode
+const mainGlassToggle = document.getElementById('mainGlassToggle');
 
-menuIcon.addEventListener("click", () => {
-  navLinks.classList.toggle("active");
-  menuIcon.classList.toggle("active");
+mainGlassToggle.addEventListener('change', function() {
+    if (this.checked) {
+        document.body.classList.add('glass-enabled');
+    } else {
+        document.body.classList.remove('glass-enabled');
+    }
+});
+
+// Aapka existing Menu Icon aur Logout code yahan niche rahega...
+const menuIcon = document.getElementById('menu-icon');
+const navLinks = document.getElementById('nav-links');
+menuIcon.addEventListener('click', () => {
+    navLinks.classList.toggle('active');
+    menuIcon.classList.toggle('active');
 });
 
 // ===== TOAST SYSTEM (REPLACES ALERT) =====
@@ -796,35 +898,6 @@ if (window.peerConnection) {
   };
 }
 
-// // ===== CONNECTION STATUS =====
-// socket.on("connect", () => showToast("🟢 Connected"));
-// socket.on("disconnect", () => showToast("🔴 Disconnected"));
-// window.addEventListener('wheel', (e) => {
-//     // roomId yahan variable hona chahiye jo aapke session ka hai
-//     socket.emit("viewer-control", { 
-//         roomId: currentRoomId, 
-//         type: "mouse-scroll", 
-//         data: { delta: e.deltaY * -1 } // Invert to match OS behavior
-//     });
-// }, { passive: false });
-// window.addEventListener('contextmenu', (e) => {
-//     e.preventDefault(); // Browser ka apna menu rokne ke liye
-//     socket.emit("viewer-control", { 
-//         roomId: currentRoomId, 
-//         type: "mouse-click", 
-//         data: { button: 'right' } 
-//     });
-// });
-// window.addEventListener('keydown', (e) => {
-//     // Avoid system keys like F12
-//     if (e.key === 'F12') return;
-
-//     socket.emit("viewer-control", { 
-//         roomId: currentRoomId, 
-//         type: "key-press", 
-//         data: { key: e.key } 
-//     });
-// });
 
 
 window.addEventListener('keydown', (e) => {
@@ -840,7 +913,7 @@ window.addEventListener('keydown', (e) => {
             shift: e.shiftKey
         }
     });
-}); // <--- Sirf ek bracket aur semicolon yahan hona chahiye
+});
 
 </script>
 </body>
