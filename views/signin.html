@@ -6,23 +6,96 @@
     <link rel="stylesheet" href="/style.css">
 
   <style>
-    body {
-  margin: 0;
-  font-family: "Poppins", sans-serif;
-  
-
-  /* Optional gradient overlay */
-  background-color: rgba(0,0,0,0.5); 
-  background-blend-mode: overlay;
-
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  overflow-x: hidden;
+:root {
+    /* Ngrok & Modern Dark Palette */
+    --bg-black: #000000;
+    --card-bg: #0a0a0a;
+    --accent-blue: #3291ff;
+    --border-color: #1f1f23;
+    --text-main: #f8fafc;
+    --text-muted: #888888;
 }
 
+body {
+    margin: 0;
+    font-family: "Poppins", sans-serif;
+    background-color: var(--bg-black);
+    color: var(--text-main);
+    
+    /* --- Perfect Centering & Layout --- */
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    overflow: hidden; /* Scrollbars hata diye professional look ke liye */
+    position: relative;
+}
+
+/* Ngrok Style Grid Background */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Subtle 45px grid pattern */
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 45px 45px;
+    mask-image: radial-gradient(circle at center, black, transparent 85%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Subtle Blue Glow at the top */
+body::after {
+    content: "";
+    position: absolute;
+    top: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(50, 145, 255, 0.1) 0%, transparent 70%);
+    filter: blur(60px);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Card centering and polish */
+.auth-container, .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 40px;
+    width: 90%;
+    max-width: 400px; /* Card ko center mein compact rakhne ke liye */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    z-index: 10;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+/* Input Fields Polish */
+input {
+    width: 100%;
+    background: #111111;
+    border: 1px solid var(--border-color);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-sizing: border-box; /* Centering align karne ke liye zaroori hai */
+    margin-bottom: 20px;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(50, 145, 255, 0.1);
+}
 
      /* ---------- NAVBAR ---------- */
     nav {
@@ -242,15 +315,15 @@
     }
     nav ul li a:hover, nav ul li a.active { color: var(--white); border-bottom: 2px solid var(--accent-red); }
 
-        #tsparticles {
+        /* #tsparticles {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     z-index: -1; /* BACKGROUND */
-    pointer-events: none; /* content clickable rahe */
-}
+    /* pointer-events: none; content clickable rahe */
+     /* } */ 
 
   </style>
 </head>
@@ -308,20 +381,40 @@
   <footer>
     <p>© 2025 SmartSession Management | All Rights Reserved</p>
   </footer>
-<script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script> -->
 
 <script>
+  // HTML mein <body> ke foran baad ye div add karein: <div id="grid-bg"></div>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const grid = document.getElementById('grid-bg');
+    
+    document.addEventListener('mousemove', (e) => {
+        // Mouse coordinates calculate karein
+        const mouseX = e.clientX / window.innerWidth;
+        const mouseY = e.clientY / window.innerHeight;
+
+        // Grid ko mouse ke opposite direction mein halka sa move karein
+        const moveX = (mouseX - 0.5) * 30; // 30px tak ki movement
+        const moveY = (mouseY - 0.5) * 30;
+
+        // Transform apply karein
+        if (grid) {
+            grid.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        }
+    });
+});
     // tsparticles
-  tsParticles.load("tsparticles", {
-    background: { color: "#02022A" },
-    particles: {
-      number: { value: 10 },
-      size: { value: 80 },
-      opacity: { value: 0.15 },
-      shape: { type: "circle" },
-      move: { enable: false }
-    }
-  });
+  // tsParticles.load("tsparticles", {
+  //   background: { color: "#02022A" },
+  //   particles: {
+  //     number: { value: 10 },
+  //     size: { value: 80 },
+  //     opacity: { value: 0.15 },
+  //     shape: { type: "circle" },
+  //     move: { enable: false }
+  //   }
+  // });
   // --- Mobile Menu Toggle ---
   const menuIcon = document.getElementById('menu-icon');
   const navLinks = document.getElementById('nav-links');

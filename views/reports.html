@@ -10,19 +10,76 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
 
 <style>
-:root {
-  --neon-cyan: #00ffcc;
-  --bg-dark: #06060c;
-  --card-bg: rgba(255, 255, 255, 0.03);
-  --border: rgba(255, 255, 255, 0.08);
+       :root {
+            /* Ngrok Signature Palette */
+            --bg-dark: #000000;          /* Pitch Black */
+            --nav-navy: #0a0a0a;         /* Card background */
+            --accent-blue: #3291ff;      /* Ngrok Blue (Red ki jagah blue zyada suit karega) */
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --border: #1f1f1f;           /* Subtle dark borders */
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-top: 80px;
+            overflow-x: hidden;
+            /* Purani image hata di gayi hai */
+        }
+        body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* 40px grid pattern */
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 45px 45px;
+    z-index: -1;
+    pointer-events: none;
 }
 
-body {
-  margin: 0; font-family: 'Plus Jakarta Sans', sans-serif;
-  background: var(--bg-dark) url('/images/background-img.jpg') center/cover no-repeat fixed;
-  background-blend-mode: overlay; color: #fff; min-height: 100vh;
+/* Radiant Glow like Ngrok dashboard */
+body::after {
+    content: "";
+    position: fixed;
+    top: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(50, 145, 255, 0.1) 0%, transparent 70%);
+    z-index: -1;
+    filter: blur(50px);
+    pointer-events: none;
+}
+.card {
+    background: var(--nav-navy);
+    border-radius: 8px; /* Thoda kam round */
+    border: 1px solid var(--border);
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Deep shadow */
 }
 
+input, select {
+    background: #111111; /* Darker inputs */
+    border: 1px solid var(--border);
+    color: #fff;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+input:focus {
+    border-color: var(--accent-blue);
+    background: #000;
+}
 /* --- Fixed Navbar (Your Original Style) --- */
     nav {
       position: fixed;
@@ -218,6 +275,14 @@ tr:hover { background: rgba(255,255,255,0.01); }
 </div>
 
 <script>
+  // Ngrok-style interactive background
+document.addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth) * 100;
+    const y = (e.clientY / window.innerHeight) * 100;
+    
+    // Grid position ko halka sa shift karna
+    document.body.style.backgroundPosition = `${x * 0.05}px ${y * 0.05}px`;
+});
 let reportsData = [];
 let chartInstance = null;
 

@@ -23,12 +23,40 @@
             --text-muted: #94a3b8;
         }
 
-        body {
-            background-color: var(--bg-deep);
-            color: var(--text-main);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            overflow-x: hidden;
-        }
+        :root {
+    /* Ngrok Signature Palette */
+    --bg-dark: #000000;          /* Pitch Black */
+    --nav-navy: #0a0a0a;         /* Card background */
+    --accent-blue: #3291ff;      /* Ngrok Blue (Red ki jagah blue zyada suit karega) */
+    --text-main: #ffffff;
+    --text-muted: #888888;
+    --border: #1f1f1f;           /* Subtle dark borders */
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    min-height: 100vh;
+    padding-top: 80px;
+    overflow-x: hidden;
+    /* Purani image hata di gayi hai */
+}
+/* Radiant Glow like Ngrok dashboard */
+body::after {
+    content: "";
+    position: fixed;
+    top: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(50, 145, 255, 0.1) 0%, transparent 70%);
+    z-index: -1;
+    filter: blur(50px);
+    pointer-events: none;
+}
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
@@ -279,6 +307,14 @@
 </div>
 
 <script>
+    // Ngrok-style interactive background
+document.addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth) * 100;
+    const y = (e.clientY / window.innerHeight) * 100;
+    
+    // Grid position ko halka sa shift karna
+    document.body.style.backgroundPosition = `${x * 0.05}px ${y * 0.05}px`;
+});
     const apiBase = window.location.origin;
     let globalUsers = [];
     let auditLogs = [];
