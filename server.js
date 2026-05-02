@@ -304,35 +304,65 @@ app.post('/api/face/upload', async (req, res) => {
 // ✅ UPDATED SECURE VERIFY API
 app.post('/api/face/verify', async (req, res) => {
   try {
-    // 1. Check karein ke user ne Login (Password) step kiya hai
+    // 1. Session & Input Validation
     if (!req.session.tempUser) {
-      return res.status(401).json({ success: false, message: 'Please login with password first' });
+      return res.status(401).json({ success: false, message: 'Session expired. Please login again.' });
     }
 
-    const { liveDescriptor } = req.body;
-    const user = await User.findById(req.session.tempUser.id);
+    const { liveDescriptor, threshold: clientThreshold } = req.body;
+
+    if (!liveDescriptor || !Array.isArray(liveDescriptor)) {
+      return res.status(400).json({ success: false, message: 'Invalid face data received.' });
+    }
+
+    // 2. Fetch User from DB
+    const user = await User.findById(req.session.tempUser.id).select('+faceDescriptor');
 
     if (!user || !user.faceDescriptor || user.faceDescriptor.length === 0) {
-      return res.status(400).json({ success: false, message: 'No face registered for this account' });
+      return res.status(400).json({ success: false, message: 'Biometric profile not found.' });
     }
 
-    // 2. Compare descriptors
+    // 3. Strict Comparison Logic
+    // liveDescriptor (Float32Array) aur stored descriptor ka distance nikalna
     const distance = getFaceDistance(user.faceDescriptor, liveDescriptor);
 
-    // 0.50 - 0.55 balance threshold hai (Glasses ke liye behtar hai)
-    if (distance < 0.55) {
-      // 🏆 SUCCESS: Ab user ko permanent session mein convert karein
-      req.session.user = req.session.tempUser;
-      delete req.session.tempUser; // Temp data delete kar dein
+    /**
+     * THRESHOLD GUIDE:
+     * < 0.40 : Extremely Strict (Strong security)
+     * 0.45   : Ideal Balance (Recommended)
+     * 0.55+  : Weak (Allows photos/lookalikes)
+     **/
+    const STRICT_THRESHOLD = 0.45; 
 
-      res.json({ success: true, message: 'Face matched successfully! ✔' });
+    if (distance <= STRICT_THRESHOLD) {
+      // 🏆 AUTHENTICATED
+      req.session.user = {
+        id: user._id,
+        username: user.username,
+        role: user.role,
+        lastVerified: new Date()
+      };
+      
+      // Cleanup temp session
+      delete req.session.tempUser;
+
+      return res.json({ 
+        success: true, 
+        message: 'Identity Verified ✔',
+        distance: distance.toFixed(4) // Debugging ke liye (Optional)
+      });
     } else {
-      res.json({ success: false, message: 'Face did not match. ❌' });
+      // Security Log: Yahan aap failed attempt log kar sakte hain
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Face mismatch. Security protocol triggered.',
+        distance: distance.toFixed(4)
+      });
     }
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error during verification" });
+    console.error("Verification Error:", err);
+    res.status(500).json({ success: false, message: "Internal server security error" });
   }
 });
 // Delete single or multiple sessions
