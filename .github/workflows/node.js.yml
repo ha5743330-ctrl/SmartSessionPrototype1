@@ -10,6 +10,10 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
 
+    # Pure job level par environment variable set kar dete hain
+    env:
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+
     steps:
     - name: Checkout repository code
       uses: actions/checkout@v4
@@ -23,6 +27,4 @@ jobs:
       run: npm install
 
     - name: Run Integration Tests
-      env:
-        MONGO_URI: ${{ secrets.MONGO_URI }}
       run: npm test
