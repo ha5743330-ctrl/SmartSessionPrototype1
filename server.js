@@ -829,3 +829,4 @@ app.get('/api/user/me', isLoggedIn, async (req, res) => {
 // ============================
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`🚀 SmartSession running on http://localhost:${PORT}`));
+module.exports = app;
