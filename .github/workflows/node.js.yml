@@ -10,22 +10,19 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-
     steps:
     - name: Checkout repository code
       uses: actions/checkout@v4
 
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 20.x
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+        node-version: 20.x
 
     - name: Install Dependencies
-      run: npm ci
+      run: npm install
 
     - name: Run Integration Tests
+      env:
+        MONGO_URI: ${{ secrets.MONGO_URI }}
       run: npm test
