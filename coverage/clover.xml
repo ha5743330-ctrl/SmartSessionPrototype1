@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1781172904755" clover="3.2.0">
-  <project timestamp="1781172904756" name="All files">
+<coverage generated="1781174634546" clover="3.2.0">
+  <project timestamp="1781174634546" name="All files">
     <metrics statements="345" coveredstatements="105" conditionals="153" coveredconditionals="11" methods="49" coveredmethods="7" elements="547" coveredelements="123" complexity="0" loc="345" ncloc="345" packages="3" files="6" classes="6"/>
     <package name="SmartSession">
       <metrics statements="307" coveredstatements="85" conditionals="141" coveredconditionals="10" methods="42" coveredmethods="5"/>
