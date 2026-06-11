@@ -39,3 +39,10 @@ uploads/faces/*
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Ignore cloudflared binary
+cloudflared.exe
+cloudfare
+
+# Ignore local test coverage reports
+coverage/
